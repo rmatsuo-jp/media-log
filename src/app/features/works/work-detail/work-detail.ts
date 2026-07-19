@@ -2,16 +2,20 @@
  * @file 作品詳細ページ。Group→Unitの階層を表示し、既読トグル・周回カウント・
  * Group単位の「読みたい」フラグ・グループ/Unitの追加を行う。
  * Unitに外部API由来のcoverImageUrlがあれば表紙サムネイルを表示する。
+ * coverImageCandidatesが2件以上あるUnitは表紙を右クリックすると表紙ピッカー（Modal+CoverTile）
+ * を開き、代替表紙に切り替えられる。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Group, Unit } from '@core/models/media.model';
+import { Modal } from '@shared/ui/modal/modal';
+import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { WorksStateService } from '../works-state.service';
 
 @Component({
   selector: 'app-work-detail',
-  imports: [],
+  imports: [Modal, CoverTile],
   templateUrl: './work-detail.html',
   styleUrl: './work-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,5 +93,25 @@ export class WorkDetail {
 
   deleteUnit(unit: Unit) {
     this.state.deleteUnit(unit.id);
+  }
+
+  protected coverPickerUnit = signal<Unit | null>(null);
+
+  // 表紙候補が2件以上あるUnitのみピッカーを開く（0/1件なら標準の右クリックメニューに任せる）。
+  onUnitCoverContextMenu(event: MouseEvent, unit: Unit) {
+    if ((unit.coverImageCandidates?.length ?? 0) < 2) return;
+    event.preventDefault();
+    this.coverPickerUnit.set(unit);
+  }
+
+  closeCoverPicker() {
+    this.coverPickerUnit.set(null);
+  }
+
+  selectUnitCover(coverImageUrl: string) {
+    const unit = this.coverPickerUnit();
+    if (!unit) return;
+    this.state.updateUnitCover(unit, coverImageUrl);
+    this.coverPickerUnit.set(null);
   }
 }

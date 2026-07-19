@@ -79,7 +79,8 @@ export class MediaRepositoryService {
 
   // ── Unit ─────────────────────────────────────────────────────────
   createUnit(
-    input: Pick<Unit, 'groupId' | 'workId' | 'number'> & Partial<Pick<Unit, 'coverImageUrl'>>,
+    input: Pick<Unit, 'groupId' | 'workId' | 'number'> &
+      Partial<Pick<Unit, 'coverImageUrl' | 'coverImageCandidates'>>,
   ): Unit {
     const now = nowIso();
     const unit: Unit = {
@@ -124,6 +125,13 @@ export class MediaRepositoryService {
       lastViewedAt: nowIso(),
       updatedAt: nowIso(),
     };
+    this.store.saveUnit(updated);
+    this.sync.pushUnits([updated]);
+  }
+
+  // 右クリックの表紙ピッカーで選び直した表紙候補を保存する。
+  updateUnitCover(unit: Unit, coverImageUrl: string): void {
+    const updated: Unit = { ...unit, coverImageUrl, updatedAt: nowIso() };
     this.store.saveUnit(updated);
     this.sync.pushUnits([updated]);
   }

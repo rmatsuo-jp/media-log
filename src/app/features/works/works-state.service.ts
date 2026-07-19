@@ -144,8 +144,13 @@ export class WorksStateService {
         groupId: group.id,
         number: candidate.number,
         coverImageUrl: candidate.coverImageUrl,
+        coverImageCandidates: candidate.variantCoverImageUrls,
       });
     }
     return group;
+  }
+
+  updateUnitCover(unit: Unit, coverImageUrl: string): void {
+    this.repo.updateUnitCover(unit, coverImageUrl);
   }
 }

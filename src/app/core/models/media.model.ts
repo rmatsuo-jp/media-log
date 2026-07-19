@@ -4,6 +4,8 @@
  * book は manga と同形として扱う想定）。Phase 2 では manga/anime のみ実装する。
  * 削除は物理削除せず deleted フラグ（tombstone）で表現し、Firestore同期でOR-mergeする。
  * coverImageUrl は外部API連携（AniList/MangaDex等）から取り込んだ表紙イラストのURL（任意）。
+ * Unit.coverImageCandidates は取り込み時に見つかった同一巻の代替表紙候補。2件以上あれば
+ * work-detail画面での右クリック切り替え（表紙ピッカー）が有効になる。
  */
 
 export type MediaType = 'manga' | 'anime'; // 将来 'movie' | 'book' を追加
@@ -42,6 +44,7 @@ export interface Unit {
   viewCount: number; // 再視聴/再読の回数
   lastViewedAt?: string; // ISO
   coverImageUrl?: string; // 外部APIから取り込んだ表紙イラストURL（巻/話数単位）
+  coverImageCandidates?: string[]; // 同一巻の代替表紙候補（2件以上で右クリック切り替え可能）
   createdAt: string;
   updatedAt: string;
   deleted?: boolean;
