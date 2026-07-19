@@ -17,6 +17,10 @@ export const routes: Routes = [
       import('./features/works/work-detail/work-detail').then((m) => m.WorkDetail),
   },
   {
+    path: 'wishlist',
+    loadComponent: () => import('./features/works/wishlist/wishlist').then((m) => m.Wishlist),
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
   },

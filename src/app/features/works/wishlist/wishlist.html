@@ -1,0 +1,38 @@
+<!-- @file 読みたいリストテンプレート。wantToConsumeEntries()を画像優先のグリッドで並べる
+     （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
+<div class="page">
+  <h1 class="page-title">読みたい</h1>
+
+  @if (state.wantToConsumeEntries().length === 0) {
+    <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
+  }
+  <div class="work-grid">
+    @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
+      <a class="work-card" [routerLink]="['/works', entry.work.id]">
+        <span class="work-cover-wrap">
+          @if (entry.work.coverImageUrl) {
+            <img
+              class="work-cover"
+              [src]="entry.work.coverImageUrl"
+              [alt]="entry.work.title"
+              loading="lazy"
+            />
+          } @else {
+            <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
+          }
+          <app-badge
+            class="work-badge"
+            [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
+            >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
+          >
+        </span>
+        <span class="work-title">{{ entry.work.title }}</span>
+        @if (!entry.work.wantToConsume) {
+          <span class="group-hint"
+            >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+          >
+        }
+      </a>
+    }
+  </div>
+</div>

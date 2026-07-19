@@ -1,13 +1,13 @@
 /**
- * @file 作品一覧ページ。「作品一覧」⇔「読みたいリスト」を切り替えて表示する。
- * 作品追加は外部API検索パネル（WorkImport）をタブ内に常時インライン表示するデフォルト導線とし、
- * 手動タイトル入力はオプション（トグルで展開）として持つ。
+ * @file 作品一覧ページ。作品追加（外部API検索パネル WorkImport を常時インライン表示する
+ * デフォルト導線、手動タイトル入力はオプションでトグル展開）と作品グリッドを表示する。
+ * 読みたいリストは独立ページ（features/works/wishlist）に分離済み。
  */
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MediaType } from '@core/models/media.model';
 import { Badge } from '@shared/ui/badge/badge';
-import { WorksStateService, WorksViewMode } from '../works-state.service';
+import { WorksStateService } from '../works-state.service';
 import { WorkImport } from '../work-import/work-import';
 
 @Component({
@@ -23,10 +23,6 @@ export class WorkList {
   protected newTitle = signal('');
   protected newMediaType = signal<MediaType>('manga');
   protected manualOpen = signal(false);
-
-  setViewMode(mode: WorksViewMode) {
-    this.state.viewMode.set(mode);
-  }
 
   toggleManual() {
     this.manualOpen.update((open) => !open);

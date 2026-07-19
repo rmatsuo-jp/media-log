@@ -1,122 +1,63 @@
-<!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加導線
-     （外部検索パネルをタブ内に常時インライン表示、手動入力はトグルで展開するオプション）、
-     下部に該当する作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。 -->
+<!-- @file 作品一覧テンプレート。上部に追加導線（外部検索パネルを常時インライン表示、
+     手動入力はトグルで展開するオプション）、下部に作品カードを画像優先のグリッドで並べる
+     （画像下部にタイトル）。読みたいリストは独立ページ（wishlist）に分離済み。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
 
-  <div class="view-toggle">
-    <button
-      class="theme-btn"
-      [class.active]="state.viewMode() === 'all'"
-      (click)="setViewMode('all')"
-      type="button"
-    >
-      作品一覧
+  <div class="form-group add-form">
+    <label class="label">作品を追加</label>
+    <app-work-import />
+
+    <button class="btn-secondary" type="button" (click)="toggleManual()">
+      手動で追加
     </button>
-    <button
-      class="theme-btn"
-      [class.active]="state.viewMode() === 'want'"
-      (click)="setViewMode('want')"
-      type="button"
-    >
-      読みたいリスト
-    </button>
+
+    @if (manualOpen()) {
+      <div class="add-row">
+        <select
+          class="select"
+          [value]="newMediaType()"
+          (change)="newMediaType.set($any($event.target).value)"
+        >
+          <option value="manga">マンガ</option>
+          <option value="anime">アニメ</option>
+        </select>
+        <input
+          class="text-input"
+          type="text"
+          placeholder="タイトル"
+          [value]="newTitle()"
+          (input)="newTitle.set($any($event.target).value)"
+          (keydown.enter)="addWork()"
+        />
+        <button class="btn-primary" type="button" (click)="addWork()">追加</button>
+      </div>
+    }
   </div>
 
-  @if (state.viewMode() === 'all') {
-    <div class="form-group add-form">
-      <label class="label">作品を追加</label>
-      <app-work-import />
-
-      <button class="btn-secondary" type="button" (click)="toggleManual()">
-        手動で追加
-      </button>
-
-      @if (manualOpen()) {
-        <div class="add-row">
-          <select
-            class="select"
-            [value]="newMediaType()"
-            (change)="newMediaType.set($any($event.target).value)"
-          >
-            <option value="manga">マンガ</option>
-            <option value="anime">アニメ</option>
-          </select>
-          <input
-            class="text-input"
-            type="text"
-            placeholder="タイトル"
-            [value]="newTitle()"
-            (input)="newTitle.set($any($event.target).value)"
-            (keydown.enter)="addWork()"
-          />
-          <button class="btn-primary" type="button" (click)="addWork()">追加</button>
-        </div>
-      }
-    </div>
-
-    @if (state.allWorksSorted().length === 0) {
-      <p class="hint">まだ作品が登録されていません。</p>
-    }
-    <div class="work-grid">
-      @for (work of state.allWorksSorted(); track work.id) {
-        <a class="work-card" [routerLink]="['/works', work.id]">
-          <span class="work-cover-wrap">
-            @if (work.coverImageUrl) {
-              <img
-                class="work-cover"
-                [src]="work.coverImageUrl"
-                [alt]="work.title"
-                loading="lazy"
-              />
-            } @else {
-              <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
-            }
-            <app-badge
-              class="work-badge"
-              [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
-              >{{ mediaTypeLabel(work.mediaType) }}</app-badge
-            >
-            @if (work.wantToConsume) {
-              <span class="want-mark">★</span>
-            }
-          </span>
-          <span class="work-title">{{ work.title }}</span>
-        </a>
-      }
-    </div>
-  } @else {
-    @if (state.wantToConsumeEntries().length === 0) {
-      <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
-    }
-    <div class="work-grid">
-      @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
-        <a class="work-card" [routerLink]="['/works', entry.work.id]">
-          <span class="work-cover-wrap">
-            @if (entry.work.coverImageUrl) {
-              <img
-                class="work-cover"
-                [src]="entry.work.coverImageUrl"
-                [alt]="entry.work.title"
-                loading="lazy"
-              />
-            } @else {
-              <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
-            }
-            <app-badge
-              class="work-badge"
-              [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
-              >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
-            >
-          </span>
-          <span class="work-title">{{ entry.work.title }}</span>
-          @if (!entry.work.wantToConsume) {
-            <span class="group-hint"
-              >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
-            >
-          }
-        </a>
-      }
-    </div>
+  @if (state.allWorksSorted().length === 0) {
+    <p class="hint">まだ作品が登録されていません。</p>
   }
+  <div class="work-grid">
+    @for (work of state.allWorksSorted(); track work.id) {
+      <a class="work-card" [routerLink]="['/works', work.id]">
+        <span class="work-cover-wrap">
+          @if (work.coverImageUrl) {
+            <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
+          } @else {
+            <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
+          }
+          <app-badge
+            class="work-badge"
+            [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
+            >{{ mediaTypeLabel(work.mediaType) }}</app-badge
+          >
+          @if (work.wantToConsume) {
+            <span class="want-mark">★</span>
+          }
+        </span>
+        <span class="work-title">{{ work.title }}</span>
+      </a>
+    }
+  </div>
 </div>

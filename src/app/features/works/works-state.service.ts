@@ -4,15 +4,13 @@
  * （CLAUDE.mdの「状態はfeature内の{feature}-state.serviceに集約する」パターン）。
  * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
  */
-import { computed, Injectable, inject, signal } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
 import { MediaRepositoryService } from '@core/media/media-repository.service';
 import {
   ExternalUnitCandidate,
   ExternalWorkSearchResult,
 } from '@core/external-media/external-media.model';
-
-export type WorksViewMode = 'all' | 'want';
 
 // 「読みたい」ビューに出す1行。work.wantToConsumeがtrueなら全グループを、falseなら
 // wantToConsumeなグループのみを visibleGroups として持つ。
@@ -24,8 +22,6 @@ export interface WantToConsumeEntry {
 @Injectable({ providedIn: 'root' })
 export class WorksStateService {
   private repo = inject(MediaRepositoryService);
-
-  readonly viewMode = signal<WorksViewMode>('all');
 
   readonly works = this.repo.works;
   readonly groups = this.repo.groups;
