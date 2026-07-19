@@ -7,14 +7,14 @@ describe('SettingsStoreService', () => {
 
   it('デフォルト設定を返す', () => {
     const service = new SettingsStoreService();
-    expect(service.getSettings()).toEqual({ theme: 'dark', language: 'ja' });
+    expect(service.getSettings()).toEqual({ theme: 'dark' });
   });
 
   it('saveSettings()で保存した内容がgetSettings()で復元される', () => {
     const service = new SettingsStoreService();
-    service.saveSettings({ theme: 'light', language: 'en' });
+    service.saveSettings({ theme: 'light' });
 
     const reader = new SettingsStoreService();
-    expect(reader.getSettings()).toEqual({ theme: 'light', language: 'en' });
+    expect(reader.getSettings()).toEqual({ theme: 'light' });
   });
 });

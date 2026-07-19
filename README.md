@@ -1,8 +1,8 @@
 # Media Log
 
-マンガ・書籍・アニメ・映画の閲覧記録を一元管理する PWA アプリです。マンガはシリーズ・単行本単位、アニメはシリーズ・話数単位で記録し、いつ・何回目まで・どこまで進んだかを追跡します。
+マンガ・書籍・アニメ・映画の閲覧記録を一元管理する PWA アプリです。マンガ・アニメについて、作品→グループ（シリーズ/シーズン）→単位（巻/話）の階層で記録し、既読・周回数・「読みたい」を管理します。
 
-**現在は Phase 1（プラットフォーム基盤）段階です。** 作品・記録の登録機能（Phase 2）は未実装で、`/settings` `/legal` `/dev` のみが動作します。
+**現在は Phase 2（マンガ・アニメの基本機能）段階です。** 書籍・映画への対応は今後追加予定です。UI言語は日本語のみです。
 
 ## 技術スタック
 
@@ -72,9 +72,9 @@ npm run lint:text  # 表記ゆれチェック（docs, README.md, ARCHITECTURE.md
 
 ```
 src/app/
-├── core/         # Firebase連携・設定・i18n・永続化サービスなど（プラットフォーム共通）
+├── core/         # Firebase連携・設定・models・media（Work/Group/Unit永続化）などプラットフォーム共通
 ├── shared/       # 共通UIコンポーネント・ユーティリティ
-└── features/     # settings / legal / dev（Phase 2で works / logs 等を追加予定）
+└── features/     # works（作品・記録管理）/ settings / legal / dev
 ```
 
 ## ドキュメント

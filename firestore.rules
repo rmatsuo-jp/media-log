@@ -18,7 +18,7 @@ service cloud.firestore {
     }
 
     // apps/media_log/users/{uid}/... 配下は許可ユーザーかつ本人のUIDのみ読み書き可能。
-    // Phase 2でデータモデル（works/logs等）が確定次第、コレクション名を追記する。
+    // works/groups/units の3コレクション（Phase 2, core/media/media-firestore-sync.service.ts）を含む。
     match /apps/media_log/users/{uid}/{document=**} {
       allow read, write: if isAllowedUser() && request.auth.uid == uid;
     }

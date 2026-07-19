@@ -1,0 +1,77 @@
+<!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加フォーム、
+     下部に該当する作品カードを並べる。 -->
+<div class="page">
+  <h1 class="page-title">作品</h1>
+
+  <div class="view-toggle">
+    <button
+      class="theme-btn"
+      [class.active]="state.viewMode() === 'all'"
+      (click)="setViewMode('all')"
+      type="button"
+    >
+      作品一覧
+    </button>
+    <button
+      class="theme-btn"
+      [class.active]="state.viewMode() === 'want'"
+      (click)="setViewMode('want')"
+      type="button"
+    >
+      読みたいリスト
+    </button>
+  </div>
+
+  @if (state.viewMode() === 'all') {
+    <div class="form-group add-form">
+      <label class="label">作品を追加</label>
+      <div class="add-row">
+        <select class="select" [value]="newMediaType()" (change)="newMediaType.set($any($event.target).value)">
+          <option value="manga">マンガ</option>
+          <option value="anime">アニメ</option>
+        </select>
+        <input
+          class="text-input"
+          type="text"
+          placeholder="タイトル"
+          [value]="newTitle()"
+          (input)="newTitle.set($any($event.target).value)"
+          (keydown.enter)="addWork()"
+        />
+        <button class="btn-primary" type="button" (click)="addWork()">追加</button>
+      </div>
+    </div>
+
+    @if (state.allWorksSorted().length === 0) {
+      <p class="hint">まだ作品が登録されていません。</p>
+    }
+    @for (work of state.allWorksSorted(); track work.id) {
+      <a class="work-card" [routerLink]="['/works', work.id]">
+        <app-badge [variant]="work.mediaType === 'manga' ? 'default' : 'success'">{{
+          mediaTypeLabel(work.mediaType)
+        }}</app-badge>
+        <span class="work-title">{{ work.title }}</span>
+        @if (work.wantToConsume) {
+          <span class="want-mark">★</span>
+        }
+      </a>
+    }
+  } @else {
+    @if (state.wantToConsumeEntries().length === 0) {
+      <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
+    }
+    @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
+      <a class="work-card" [routerLink]="['/works', entry.work.id]">
+        <app-badge [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'">{{
+          mediaTypeLabel(entry.work.mediaType)
+        }}</app-badge>
+        <span class="work-title">{{ entry.work.title }}</span>
+        @if (!entry.work.wantToConsume) {
+          <span class="group-hint"
+            >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+          >
+        }
+      </a>
+    }
+  }
+</div>

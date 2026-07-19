@@ -1,30 +1,32 @@
 <!-- @file アカウントパネル（Google ログインでデータを複数端末で共有）。 -->
 <div class="form-group">
-  <label class="label">{{ i18n.t('settings.account') }}</label>
-  <p class="hint">{{ i18n.t('settings.accountHint') }}</p>
+  <label class="label">アカウント（データ同期）</label>
+  <p class="hint">Google でログインすると、記録データを他の端末と共有できます。</p>
   @if (user(); as u) {
     <div class="account-card">
       @if (u.photoURL) {
         <img class="account-avatar" [src]="u.photoURL" alt="" referrerpolicy="no-referrer" />
       }
       <div class="account-info">
-        <strong>{{ u.displayName || i18n.t('settings.loggedIn') }}</strong>
+        <strong>{{ u.displayName || 'ログイン中' }}</strong>
         <span class="account-email">{{ u.email }}</span>
       </div>
       <button class="btn-secondary" (click)="logout()" [disabled]="authBusy()" type="button">
-        {{ i18n.t('settings.logout') }}
+        ログアウト
       </button>
     </div>
   } @else {
     <button class="btn-primary" (click)="login()" [disabled]="authBusy()" type="button">
       @if (authBusy()) {
-        {{ i18n.t('settings.processing') }}
+        処理中…
       } @else {
-        {{ i18n.t('settings.login') }}
+        Google でログイン
       }
     </button>
     <!-- クラウド同期はホワイトリスト制であることの常時表示注記 -->
-    <p class="auth-note">{{ i18n.t('settings.authNote') }}</p>
+    <p class="auth-note">
+      クラウド同期は許可されたユーザー（ホワイトリスト制）のみ利用できます。ログインなしでもローカル保存で全機能を利用できます。
+    </p>
   }
   <!-- 非許可ユーザーがログインを試みたときの拒否メッセージ -->
   @if (loginError(); as msg) {

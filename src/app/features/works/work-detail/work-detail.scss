@@ -1,0 +1,65 @@
+.work-header {
+  margin-bottom: 1.5rem;
+}
+
+.work-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.want-btn {
+  flex: 0 0 auto;
+}
+
+.group-card {
+  margin-bottom: 1rem;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.group-title {
+  font-weight: 700;
+  flex: 1;
+}
+
+.unit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--color-border);
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.unit-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.view-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.add-unit-row,
+.add-group-form .add-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+
+  .text-input {
+    flex: 1;
+  }
+}

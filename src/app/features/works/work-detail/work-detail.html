@@ -1,0 +1,84 @@
+<!-- @file 作品詳細テンプレート。Group→Unitの階層表示、既読トグル・周回カウント・
+     読みたいフラグの操作、グループ/Unit追加フォームを持つ。 -->
+<div class="page">
+  @if (work(); as w) {
+    <div class="work-header">
+      <h1 class="page-title">{{ w.title }}</h1>
+      <div class="work-actions">
+        <button
+          class="theme-btn want-btn"
+          [class.active]="w.wantToConsume"
+          type="button"
+          (click)="toggleWorkWant()"
+        >
+          {{ w.wantToConsume ? '★ 読みたい（作品全体）' : '☆ 読みたい（作品全体）' }}
+        </button>
+        <button class="btn-secondary" type="button" (click)="deleteWork()">作品を削除</button>
+      </div>
+    </div>
+
+    @for (group of groups(); track group.id) {
+      <div class="card group-card">
+        <div class="group-header">
+          <span class="group-title">{{ group.title }}</span>
+          <button
+            class="theme-btn want-btn"
+            [class.active]="group.wantToConsume"
+            type="button"
+            (click)="toggleGroupWant(group)"
+          >
+            {{ group.wantToConsume ? '★ 読みたい' : '☆ 読みたい' }}
+          </button>
+          <button class="link-button" type="button" (click)="deleteGroup(group)">削除</button>
+        </div>
+
+        @for (unit of unitsForGroup(group.id); track unit.id) {
+          <div class="unit-row">
+            <label class="unit-checkbox">
+              <input
+                type="checkbox"
+                [checked]="unit.viewed"
+                (change)="toggleUnitViewed(unit)"
+              />
+              <span>第{{ unit.number }}話・巻</span>
+            </label>
+            <span class="view-count">{{ unit.viewCount }}回</span>
+            <button class="link-button" type="button" (click)="incrementViewCount(unit)">
+              +1周
+            </button>
+            <button class="link-button" type="button" (click)="deleteUnit(unit)">削除</button>
+          </div>
+        }
+
+        <div class="add-unit-row">
+          <input
+            class="text-input"
+            type="number"
+            placeholder="番号"
+            [value]="newUnitNumber(group.id)"
+            (input)="setNewUnitNumber(group.id, $any($event.target).value)"
+            (keydown.enter)="addUnit(group)"
+          />
+          <button class="btn-secondary" type="button" (click)="addUnit(group)">巻/話を追加</button>
+        </div>
+      </div>
+    }
+
+    <div class="form-group add-group-form">
+      <label class="label">グループを追加</label>
+      <div class="add-row">
+        <input
+          class="text-input"
+          type="text"
+          placeholder="例: 第1期, 1-10巻"
+          [value]="newGroupTitle()"
+          (input)="newGroupTitle.set($any($event.target).value)"
+          (keydown.enter)="addGroup()"
+        />
+        <button class="btn-primary" type="button" (click)="addGroup()">追加</button>
+      </div>
+    </div>
+  } @else {
+    <p class="hint">作品が見つかりません。</p>
+  }
+</div>

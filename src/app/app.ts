@@ -1,5 +1,5 @@
 /**
- * @file ルートコンポーネント。起動時に theme/language を初期化し、
+ * @file ルートコンポーネント。起動時に theme を初期化し、
  * ボトムナビ実高さの --bottom-nav-height への反映を担う。
  */
 import {
@@ -15,8 +15,6 @@ import {
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { environment } from '../environments/environment';
 import { SettingsStoreService } from '@core/settings/settings-store.service';
-import { I18nService } from '@core/i18n/i18n.service';
-import { Lang } from '@core/i18n/lang.model';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +26,6 @@ import { Lang } from '@core/i18n/lang.model';
 export class App {
   private settingsStore = inject(SettingsStoreService);
   private destroyRef = inject(DestroyRef);
-  protected i18n = inject(I18nService);
 
   private bottomNav = viewChild<ElementRef<HTMLElement>>('bottomNav');
   private readonly desktopMedia = window.matchMedia('(min-width: 768px)');
@@ -42,7 +39,6 @@ export class App {
   constructor() {
     const settings = this.settingsStore.getSettings();
     document.documentElement.dataset['theme'] = settings.theme;
-    this.i18n.setLang(settings.language);
 
     afterNextRender(() => this.observeBottomNavHeight());
   }
@@ -80,12 +76,6 @@ export class App {
       window.clearTimeout(deferredCheck);
       window.cancelAnimationFrame(rafId);
     });
-  }
-
-  // ── 表示言語のトグル: signal 反映と同時に即時永続化する ──────────
-  toggleLanguage(lang: Lang) {
-    this.i18n.setLang(lang);
-    this.settingsStore.saveSettings({ ...this.settingsStore.getSettings(), language: lang });
   }
 
   // ── サイドバー格納ボタン: 表示⇔格納をトグル ─────────────────

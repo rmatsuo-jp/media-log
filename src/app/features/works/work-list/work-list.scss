@@ -1,0 +1,45 @@
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-form {
+  .add-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .text-input {
+    flex: 1;
+    min-width: 8rem;
+  }
+}
+
+.work-card {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.work-title {
+  font-weight: 600;
+  flex: 1;
+}
+
+.want-mark {
+  color: var(--color-warning);
+}
+
+.group-hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}

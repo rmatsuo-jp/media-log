@@ -4,7 +4,6 @@
  */
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { AuthService } from '@core/firebase/auth.service';
-import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
   selector: 'app-account-panel',
@@ -15,7 +14,6 @@ import { I18nService } from '@core/i18n/i18n.service';
 })
 export class AccountPanel {
   private auth = inject(AuthService);
-  protected i18n = inject(I18nService);
 
   readonly user = this.auth.user;
   // 非許可ユーザーのログイン拒否メッセージ（ホワイトリスト制。auth.service.ts が設定）

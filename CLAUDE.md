@@ -1,10 +1,8 @@
 # CLAUDE.md — Media Log
 
-Angular 22 製 PWA。マンガ・書籍・アニメ・映画の閲覧記録（作品・記録単位・いつ/何回目まで進んだか）を一元管理する。
-UI言語: 日本語（i18nでen対応）。
-
-**現状（Phase 1）はプラットフォーム基盤のみ**（core/firebase, core/i18n, core/settings, features/settings, features/legal, features/dev）。
-作品・記録のデータモデルとCRUD機能（features/works, features/logs 等）はPhase 2で追加する。
+Angular 22 製 PWA。マンガ・アニメの閲覧記録（作品Work→グループGroup→単位Unitの3階層で、既読・周回数・
+「読みたい」を管理）を一元管理する。書籍・映画への拡張はUnit/Group抽象がそのまま使える設計。
+UI言語: 日本語のみ（i18n基盤は撤去済み。多言語対応の予定なし）。
 
 ## 基本ルール
 
@@ -12,10 +10,13 @@ UI言語: 日本語（i18nでen対応）。
 - ファイルは全文読みせず、`grep`/`@file`コメントで該当箇所を特定してから必要範囲のみ読む。
 - 依存方向は `features → core → shared` の一方向のみ。feature間import・core→features importは禁止。
   層跨ぎは `@core/*` / `@shared/*` / `@features/*`（tsconfig.json）、同一フォルダ内は相対import。
+- 型定義の正は `src/app/core/models/media.model.ts`（Work/Group/Unit）。
 - リアクティブは `signal()`（`BehaviorSubject`不使用）。コンポーネントはStandalone。
-- 永続化はコンポーネントから直接localStorageを触らず、専用のストアサービス（`SettingsStoreService`等）経由。
-  Phase 2で作品/記録データのストアを追加する際も同じパターン（single-source-of-truthストア + localStorage永続化 +
-  Firestore任意同期）を踏襲すること。
+- 永続化はコンポーネントから直接localStorageを触らず、専用のストアサービス経由。
+  作品/記録データは `core/media/media-repository.service.ts` が唯一の書き込み窓口
+  （ローカル保存 + Firestore fire-and-forget push を1箇所に集約）。設定は`SettingsStoreService`。
+  新しいドメインデータを追加する際も同じパターン（single-source-of-truthストア + localStorage永続化 +
+  tombstone論理削除 + Firestore任意同期）を踏襲すること。
 
 ## バージョン運用
 
