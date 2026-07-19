@@ -146,14 +146,23 @@ export class MediaFirestoreSyncService {
   // ログイン直後に呼ぶ双方向同期（tombstone対応）。works/groups/unitsそれぞれについて、
   // ローカル・クラウドをidで突き合わせてマージし、食い違う分をクラウドへpushする。
   async syncFromCloud(uid: string): Promise<void> {
-    await this.syncCollection(uid, 'works', () => this.store.allWorks(), (merged) =>
-      this.store.persistWorks(merged as Work[]),
+    await this.syncCollection(
+      uid,
+      'works',
+      () => this.store.allWorks(),
+      (merged) => this.store.persistWorks(merged as Work[]),
     );
-    await this.syncCollection(uid, 'groups', () => this.store.allGroups(), (merged) =>
-      this.store.persistGroups(merged as Group[]),
+    await this.syncCollection(
+      uid,
+      'groups',
+      () => this.store.allGroups(),
+      (merged) => this.store.persistGroups(merged as Group[]),
     );
-    await this.syncCollection(uid, 'units', () => this.store.allUnits(), (merged) =>
-      this.store.persistUnits(merged as Unit[]),
+    await this.syncCollection(
+      uid,
+      'units',
+      () => this.store.allUnits(),
+      (merged) => this.store.persistUnits(merged as Unit[]),
     );
   }
 

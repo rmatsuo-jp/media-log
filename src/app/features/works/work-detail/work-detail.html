@@ -37,10 +37,7 @@
         <div class="unit-grid">
           @for (unit of unitsForGroup(group.id); track unit.id) {
             <div class="unit-row">
-              <span
-                class="unit-cover-wrap"
-                (contextmenu)="onUnitCoverContextMenu($event, unit)"
-              >
+              <span class="unit-cover-wrap" (contextmenu)="onUnitCoverContextMenu($event, unit)">
                 @if (unit.coverImageUrl) {
                   <img class="unit-cover" [src]="unit.coverImageUrl" alt="" loading="lazy" />
                 } @else {
@@ -49,7 +46,9 @@
               </span>
               <label class="unit-checkbox">
                 <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
-                <span>{{ w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話' }}</span>
+                <span>{{
+                  w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話'
+                }}</span>
               </label>
               <div class="unit-actions">
                 <span class="view-count">{{ unit.viewCount }}回</span>

@@ -9,7 +9,10 @@ import { WorkImportSearchService } from './work-import-search.service';
 
 describe('WorkImportSearchService', () => {
   let service: WorkImportSearchService;
-  let anilist: { searchWorks: ReturnType<typeof vi.fn>; getAnimeEpisodes: ReturnType<typeof vi.fn> };
+  let anilist: {
+    searchWorks: ReturnType<typeof vi.fn>;
+    getAnimeEpisodes: ReturnType<typeof vi.fn>;
+  };
   let mangadex: { searchManga: ReturnType<typeof vi.fn>; getVolumes: ReturnType<typeof vi.fn> };
 
   const result: ExternalWorkSearchResult = {
@@ -71,8 +74,20 @@ describe('WorkImportSearchService', () => {
   it('loadCandidatesForはmangaの場合MangaDexをAniList IDで突き合わせて巻を取得する', () => {
     mangadex.searchManga.mockReturnValue(
       of([
-        { mediaType: 'manga', externalSource: 'mangadex', externalId: 'md-1', title: 'x', anilistId: '1' },
-        { mediaType: 'manga', externalSource: 'mangadex', externalId: 'md-2', title: 'y', anilistId: '999' },
+        {
+          mediaType: 'manga',
+          externalSource: 'mangadex',
+          externalId: 'md-1',
+          title: 'x',
+          anilistId: '1',
+        },
+        {
+          mediaType: 'manga',
+          externalSource: 'mangadex',
+          externalId: 'md-2',
+          title: 'y',
+          anilistId: '999',
+        },
       ]),
     );
     mangadex.getVolumes.mockReturnValue(of([{ number: 1, coverImageUrl: 'a.jpg' }]));
@@ -87,7 +102,15 @@ describe('WorkImportSearchService', () => {
 
   it('AniList IDが一致しない場合は巻候補を0件にする', () => {
     mangadex.searchManga.mockReturnValue(
-      of([{ mediaType: 'manga', externalSource: 'mangadex', externalId: 'md-2', title: 'y', anilistId: '999' }]),
+      of([
+        {
+          mediaType: 'manga',
+          externalSource: 'mangadex',
+          externalId: 'md-2',
+          title: 'y',
+          anilistId: '999',
+        },
+      ]),
     );
 
     let loaded: unknown;

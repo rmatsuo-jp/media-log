@@ -17,7 +17,10 @@ const DEFAULT_SETTINGS: WorkImportSettings = {
 @Injectable({ providedIn: 'root' })
 export class WorkImportSettingsService {
   getSettings(): WorkImportSettings {
-    return { ...DEFAULT_SETTINGS, ...readJson<Partial<WorkImportSettings>>(WORK_IMPORT_SETTINGS_KEY, {}) };
+    return {
+      ...DEFAULT_SETTINGS,
+      ...readJson<Partial<WorkImportSettings>>(WORK_IMPORT_SETTINGS_KEY, {}),
+    };
   }
 
   saveSettings(settings: WorkImportSettings): void {

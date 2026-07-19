@@ -44,7 +44,12 @@
         (input)="search.query.set($any($event.target).value)"
         (keydown.enter)="search.search()"
       />
-      <button class="btn-primary" type="button" (click)="search.search()" [disabled]="search.searching()">
+      <button
+        class="btn-primary"
+        type="button"
+        (click)="search.search()"
+        [disabled]="search.searching()"
+      >
         @if (search.searching()) {
           <app-spinner />
         } @else {
@@ -125,7 +130,10 @@
             (tileClick)="selectWork(result)"
           />
           @if (search.mediaType() === 'both') {
-            <app-badge class="work-import-badge" [variant]="result.mediaType === 'manga' ? 'default' : 'success'">
+            <app-badge
+              class="work-import-badge"
+              [variant]="result.mediaType === 'manga' ? 'default' : 'success'"
+            >
               {{ result.mediaType === 'manga' ? 'マンガ' : 'アニメ' }}
             </app-badge>
           }
@@ -134,10 +142,20 @@
     </div>
     @if (search.sortedResults().length > 0) {
       <div class="pagination-row">
-        <button class="theme-btn" type="button" (click)="search.prevPage()" [disabled]="search.page() === 0">
+        <button
+          class="theme-btn"
+          type="button"
+          (click)="search.prevPage()"
+          [disabled]="search.page() === 0"
+        >
           前へ
         </button>
-        <button class="theme-btn" type="button" (click)="search.nextPage()" [disabled]="!search.hasNextPage()">
+        <button
+          class="theme-btn"
+          type="button"
+          (click)="search.nextPage()"
+          [disabled]="!search.hasNextPage()"
+        >
           次へ
         </button>
       </div>
@@ -167,7 +185,9 @@
         が見つかりませんでした。作品情報のみ取り込みます。
       </p>
     } @else {
-      <p class="hint">取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。</p>
+      <p class="hint">
+        取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。
+      </p>
       <div class="view-toggle">
         <button
           class="theme-btn"
@@ -199,7 +219,12 @@
           <div class="cover-tile-wrap">
             <app-cover-tile
               [imageUrl]="search.coverUrlFor(candidate)"
-              [label]="candidate.title ?? (work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話')"
+              [label]="
+                candidate.title ??
+                (work.mediaType === 'manga'
+                  ? candidate.number + '巻'
+                  : '第' + candidate.number + '話')
+              "
               [selected]="isSelected(candidate.number)"
               size="sm"
               (tileClick)="toggleCandidate(candidate.number)"

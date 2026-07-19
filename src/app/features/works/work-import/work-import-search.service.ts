@@ -14,7 +14,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { MediaType } from '@core/models/media.model';
-import { ExternalUnitCandidate, ExternalWorkSearchResult } from '@core/external-media/external-media.model';
+import {
+  ExternalUnitCandidate,
+  ExternalWorkSearchResult,
+} from '@core/external-media/external-media.model';
 import { AnilistApiService } from '@core/external-media/anilist-api.service';
 import { MangadexApiService } from '@core/external-media/mangadex-api.service';
 import { WorkImportSettingsService } from './work-import-settings.service';
@@ -69,7 +72,11 @@ export class WorkImportSearchService {
   });
 
   constructor() {
-    combineLatest([toObservable(this.query), toObservable(this.mediaType), toObservable(this.includeAdult)])
+    combineLatest([
+      toObservable(this.query),
+      toObservable(this.mediaType),
+      toObservable(this.includeAdult),
+    ])
       .pipe(
         debounceTime(400),
         distinctUntilChanged((a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2]),
@@ -134,7 +141,10 @@ export class WorkImportSearchService {
     this.page.set(0);
   }
 
-  loadCandidatesFor(result: ExternalWorkSearchResult, onLoaded: (candidates: ExternalUnitCandidate[]) => void): void {
+  loadCandidatesFor(
+    result: ExternalWorkSearchResult,
+    onLoaded: (candidates: ExternalUnitCandidate[]) => void,
+  ): void {
     this.candidates.set([]);
     this.variantIndexByNumber.set(new Map());
     this.loadingCandidates.set(true);

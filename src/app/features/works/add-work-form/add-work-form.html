@@ -4,9 +4,7 @@
   <label class="label">作品を追加</label>
   <app-work-import (imported)="onImported($event)" />
 
-  <button class="btn-secondary" type="button" (click)="toggleManual()">
-    手動で追加
-  </button>
+  <button class="btn-secondary" type="button" (click)="toggleManual()">手動で追加</button>
 
   @if (manualOpen()) {
     <div class="add-row">

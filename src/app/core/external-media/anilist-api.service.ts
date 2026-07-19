@@ -56,7 +56,8 @@ export class AnilistApiService {
     mediaType: MediaType | 'both',
     includeAdult = false,
   ): Observable<ExternalWorkSearchResult[]> {
-    const anilistType = mediaType === 'both' ? undefined : mediaType === 'manga' ? 'MANGA' : 'ANIME';
+    const anilistType =
+      mediaType === 'both' ? undefined : mediaType === 'manga' ? 'MANGA' : 'ANIME';
     const graphqlQuery = `
       query ($search: String, $type: MediaType, $isAdult: Boolean) {
         Page(page: 1, perPage: 20) {

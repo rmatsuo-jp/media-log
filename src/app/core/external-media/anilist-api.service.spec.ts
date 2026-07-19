@@ -24,7 +24,11 @@ describe('AnilistApiService', () => {
     service.searchWorks('ワンピース', 'manga').subscribe((r) => (result = r));
 
     const req = httpMock.expectOne('https://graphql.anilist.co');
-    expect(req.request.body.variables).toEqual({ search: 'ワンピース', type: 'MANGA', isAdult: false });
+    expect(req.request.body.variables).toEqual({
+      search: 'ワンピース',
+      type: 'MANGA',
+      isAdult: false,
+    });
     req.flush({
       data: {
         Page: {
@@ -56,7 +60,11 @@ describe('AnilistApiService', () => {
     service.searchWorks('ワンピース', 'manga', true).subscribe();
 
     const req = httpMock.expectOne('https://graphql.anilist.co');
-    expect(req.request.body.variables).toEqual({ search: 'ワンピース', type: 'MANGA', isAdult: null });
+    expect(req.request.body.variables).toEqual({
+      search: 'ワンピース',
+      type: 'MANGA',
+      isAdult: null,
+    });
     req.flush({ data: { Page: { media: [] } } });
   });
 

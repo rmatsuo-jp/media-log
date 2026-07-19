@@ -24,16 +24,18 @@ describe('MangadexApiService', () => {
     service.searchManga('鬼滅の刃').subscribe((r) => (result = r));
 
     const req = httpMock.expectOne(
-      (r) => r.url === 'https://api.mangadex.org/manga' || r.urlWithParams.startsWith(
-        'https://api.mangadex.org/manga?',
-      ),
+      (r) =>
+        r.url === 'https://api.mangadex.org/manga' ||
+        r.urlWithParams.startsWith('https://api.mangadex.org/manga?'),
     );
     req.flush({
       data: [
         {
           id: 'manga-1',
           attributes: { title: { ja: '鬼滅の刃', en: 'Demon Slayer' } },
-          relationships: [{ id: 'cover-1', type: 'cover_art', attributes: { fileName: 'cover.jpg' } }],
+          relationships: [
+            { id: 'cover-1', type: 'cover_art', attributes: { fileName: 'cover.jpg' } },
+          ],
         },
       ],
     });
@@ -53,7 +55,9 @@ describe('MangadexApiService', () => {
     let result: unknown;
     service.getVolumes('manga-1').subscribe((r) => (result = r));
 
-    const req = httpMock.expectOne((r) => r.urlWithParams.startsWith('https://api.mangadex.org/cover?'));
+    const req = httpMock.expectOne((r) =>
+      r.urlWithParams.startsWith('https://api.mangadex.org/cover?'),
+    );
     req.flush({
       data: [
         { attributes: { volume: '2', fileName: 'v2.jpg' } },
@@ -80,7 +84,9 @@ describe('MangadexApiService', () => {
     let result: unknown;
     service.getVolumes('manga-1').subscribe((r) => (result = r));
 
-    const req = httpMock.expectOne((r) => r.urlWithParams.startsWith('https://api.mangadex.org/cover?'));
+    const req = httpMock.expectOne((r) =>
+      r.urlWithParams.startsWith('https://api.mangadex.org/cover?'),
+    );
     req.flush({
       data: [
         { attributes: { volume: '1', fileName: 'v1-a.jpg' } },

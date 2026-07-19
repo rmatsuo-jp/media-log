@@ -8,14 +8,14 @@
 
 ## 開発者向け
 
-| ファイル                                             | 内容                                                                                           |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [README.md](../README.md)                            | プロジェクト概要・セットアップ最短手順・ビルド/テスト/Lint・セキュリティ運用・プロジェクト構成 |
-| [ARCHITECTURE.md](../ARCHITECTURE.md)                | レイヤー構成（features → core → shared）、プラットフォーム構成、feature内サービス分割の指針    |
-| [SECURITY.md](../SECURITY.md)                        | サポート対象バージョンと脆弱性報告方法（GitHub Private Vulnerability Reporting）               |
-| [CHANGELOG.md](../CHANGELOG.md)                      | semantic-releaseによる自動生成のリリースノート                                                 |
-| [setup.md](setup.md)                                 | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
-| [deploy-to-android-pwa.md](deploy-to-android-pwa.md) | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順                                   |
+| ファイル                                                       | 内容                                                                                           |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [README.md](../README.md)                                      | プロジェクト概要・セットアップ最短手順・ビルド/テスト/Lint・セキュリティ運用・プロジェクト構成 |
+| [ARCHITECTURE.md](../ARCHITECTURE.md)                          | レイヤー構成（features → core → shared）、プラットフォーム構成、feature内サービス分割の指針    |
+| [SECURITY.md](../SECURITY.md)                                  | サポート対象バージョンと脆弱性報告方法（GitHub Private Vulnerability Reporting）               |
+| [CHANGELOG.md](../CHANGELOG.md)                                | semantic-releaseによる自動生成のリリースノート                                                 |
+| [setup.md](setup.md)                                           | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
+| [deploy-to-android-pwa.md](deploy-to-android-pwa.md)           | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順                                   |
 | [external-media-integration.md](external-media-integration.md) | 作品取り込みが使う外部API（AniList/MangaDex）の役割分担と依存関係                              |
 
 ## 法務

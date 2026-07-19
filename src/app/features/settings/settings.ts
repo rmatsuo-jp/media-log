@@ -57,7 +57,9 @@ export class Settings {
       const start = heading.index! + heading[0].length;
       const end = headings[i + 1]?.index ?? text.length;
       const body = text.slice(start, end);
-      const items = [...body.matchAll(/^\* (.+?)(?: \(\[.+\]\(.+\)\))?$/gm)].map((m) => m[1].trim());
+      const items = [...body.matchAll(/^\* (.+?)(?: \(\[.+\]\(.+\)\))?$/gm)].map((m) =>
+        m[1].trim(),
+      );
 
       notes.push({ version: heading[1], date: heading[2], items });
     }

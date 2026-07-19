@@ -40,10 +40,7 @@
   <div class="work-grid">
     @for (work of filteredWorks(); track work.id) {
       <a class="work-card" [routerLink]="['/works', work.id]">
-        <span
-          class="work-cover-wrap"
-          (contextmenu)="onWorkCoverContextMenu($event, work)"
-        >
+        <span class="work-cover-wrap" (contextmenu)="onWorkCoverContextMenu($event, work)">
           @if (work.coverImageUrl) {
             <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
           } @else {
@@ -78,9 +75,7 @@
           }
         </div>
       }
-      <button class="btn-secondary" type="button" (click)="deleteWorkFromMenu()">
-        作品を削除
-      </button>
+      <button class="btn-secondary" type="button" (click)="deleteWorkFromMenu()">作品を削除</button>
     </app-modal>
   }
 </div>
