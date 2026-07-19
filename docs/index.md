@@ -8,31 +8,31 @@
 
 ## 開発者向け
 
-| ファイル                              | 内容                                                                                     |
-| -------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [README.md](../README.md)             | プロジェクト概要・セットアップ最短手順・ビルド/テスト/Lint・セキュリティ運用・プロジェクト構成 |
-| [ARCHITECTURE.md](../ARCHITECTURE.md) | レイヤー構成（features → core → shared）、プラットフォーム構成、Phase 2で追加予定の機能 |
-| [SECURITY.md](../SECURITY.md)         | サポート対象バージョンと脆弱性報告方法（GitHub Private Vulnerability Reporting）        |
-| [CHANGELOG.md](../CHANGELOG.md)       | semantic-releaseによる自動生成のリリースノート                                          |
-| [setup.md](setup.md)                  | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）             |
-| [deploy-to-android-pwa.md](deploy-to-android-pwa.md) | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順            |
+| ファイル                                             | 内容                                                                                           |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [README.md](../README.md)                            | プロジェクト概要・セットアップ最短手順・ビルド/テスト/Lint・セキュリティ運用・プロジェクト構成 |
+| [ARCHITECTURE.md](../ARCHITECTURE.md)                | レイヤー構成（features → core → shared）、プラットフォーム構成、Phase 2で追加予定の機能        |
+| [SECURITY.md](../SECURITY.md)                        | サポート対象バージョンと脆弱性報告方法（GitHub Private Vulnerability Reporting）               |
+| [CHANGELOG.md](../CHANGELOG.md)                      | semantic-releaseによる自動生成のリリースノート                                                 |
+| [setup.md](setup.md)                                 | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
+| [deploy-to-android-pwa.md](deploy-to-android-pwa.md) | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順                                   |
 
 ## 法務
 
 `docs/legal/` のみディレクトリ構成を維持しています（理由は下記「ドキュメントリファクタリング方針」参照）。
 
-| ファイル                                   | 内容                                                                     |
-| ------------------------------------------ | ------------------------------------------------------------------------- |
-| [legal/terms.md](legal/terms.md)           | 利用規約                                                                 |
-| [legal/privacy.md](legal/privacy.md)       | プライバシーポリシー（ローカル保存/Firebase同期データの取り扱い）        |
-| [legal/disclaimer.md](legal/disclaimer.md) | 免責事項                                                                 |
-| [legal/LICENSE.md](legal/LICENSE.md)       | MITライセンス本文（日本語参考訳付き）                                    |
+| ファイル                                   | 内容                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| [legal/terms.md](legal/terms.md)           | 利用規約                                                          |
+| [legal/privacy.md](legal/privacy.md)       | プライバシーポリシー（ローカル保存/Firebase同期データの取り扱い） |
+| [legal/disclaimer.md](legal/disclaimer.md) | 免責事項                                                          |
+| [legal/LICENSE.md](legal/LICENSE.md)       | MITライセンス本文（日本語参考訳付き）                             |
 
 ## Claude Code
 
-| ファイル                  | 内容                                                                                |
-| ------------------------- | -------------------------------------------------------------------------------------- |
-| [CLAUDE.md](../CLAUDE.md) | Claude Code向けの開発ルール（依存方向・コメント規約など）。開発フロー上のルールはこちらが正 |
+| ファイル                  | 内容                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| [CLAUDE.md](../CLAUDE.md) | Claude Code向けの開発ルール（依存方向・コメント規約など）。開発フロー上のルールはこちらが正       |
 | [todo.md](todo.md)        | 今後の機能追加・修正およびリファクタリングのTODOリスト。Claude Codeはタスク着手・完了時に更新する |
 
 ## ドキュメントリファクタリング方針
