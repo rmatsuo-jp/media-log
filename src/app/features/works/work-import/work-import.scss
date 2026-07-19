@@ -55,6 +55,32 @@
   color: var(--color-error);
 }
 
+// ── ボタン群のサイズをこのフォーム内でのみ統一（グローバル定義は他画面と共有のため変更しない） ──
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: var(--space-3);
+
+  .theme-btn {
+    font-size: 0.9375rem;
+  }
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+
+  .text-input {
+    flex: 1;
+  }
+
+  .btn-primary {
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    flex-shrink: 0;
+  }
+}
+
 // ── 詳細設定（成人向け表示切り替え等） ──
 .advanced-settings {
   margin: var(--space-2) 0;
