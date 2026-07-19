@@ -1,5 +1,5 @@
 <!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加フォーム、
-     下部に該当する作品カードを並べる。 -->
+     下部に該当する作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
 
@@ -56,44 +56,65 @@
     @if (state.allWorksSorted().length === 0) {
       <p class="hint">まだ作品が登録されていません。</p>
     }
-    @for (work of state.allWorksSorted(); track work.id) {
-      <a class="work-card" [routerLink]="['/works', work.id]">
-        @if (work.coverImageUrl) {
-          <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
-        }
-        <app-badge [variant]="work.mediaType === 'manga' ? 'default' : 'success'">{{
-          mediaTypeLabel(work.mediaType)
-        }}</app-badge>
-        <span class="work-title">{{ work.title }}</span>
-        @if (work.wantToConsume) {
-          <span class="want-mark">★</span>
-        }
-      </a>
-    }
+    <div class="work-grid">
+      @for (work of state.allWorksSorted(); track work.id) {
+        <a class="work-card" [routerLink]="['/works', work.id]">
+          <span class="work-cover-wrap">
+            @if (work.coverImageUrl) {
+              <img
+                class="work-cover"
+                [src]="work.coverImageUrl"
+                [alt]="work.title"
+                loading="lazy"
+              />
+            } @else {
+              <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
+            }
+            <app-badge
+              class="work-badge"
+              [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
+              >{{ mediaTypeLabel(work.mediaType) }}</app-badge
+            >
+            @if (work.wantToConsume) {
+              <span class="want-mark">★</span>
+            }
+          </span>
+          <span class="work-title">{{ work.title }}</span>
+        </a>
+      }
+    </div>
   } @else {
     @if (state.wantToConsumeEntries().length === 0) {
       <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
     }
-    @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
-      <a class="work-card" [routerLink]="['/works', entry.work.id]">
-        @if (entry.work.coverImageUrl) {
-          <img
-            class="work-cover"
-            [src]="entry.work.coverImageUrl"
-            [alt]="entry.work.title"
-            loading="lazy"
-          />
-        }
-        <app-badge [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'">{{
-          mediaTypeLabel(entry.work.mediaType)
-        }}</app-badge>
-        <span class="work-title">{{ entry.work.title }}</span>
-        @if (!entry.work.wantToConsume) {
-          <span class="group-hint"
-            >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
-          >
-        }
-      </a>
-    }
+    <div class="work-grid">
+      @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
+        <a class="work-card" [routerLink]="['/works', entry.work.id]">
+          <span class="work-cover-wrap">
+            @if (entry.work.coverImageUrl) {
+              <img
+                class="work-cover"
+                [src]="entry.work.coverImageUrl"
+                [alt]="entry.work.title"
+                loading="lazy"
+              />
+            } @else {
+              <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
+            }
+            <app-badge
+              class="work-badge"
+              [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
+              >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
+            >
+          </span>
+          <span class="work-title">{{ entry.work.title }}</span>
+          @if (!entry.work.wantToConsume) {
+            <span class="group-hint"
+              >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+            >
+          }
+        </a>
+      }
+    </div>
   }
 </div>
