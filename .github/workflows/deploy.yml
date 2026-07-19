@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy Firestore rules
-        run: npx firebase-tools deploy --only firestore:rules --project media-log
+        run: npx firebase-tools deploy --only firestore:rules --project media-log-7a097
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 

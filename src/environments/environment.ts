@@ -8,11 +8,11 @@
 export const environment = {
   production: false,
   firebase: {
-    apiKey: 'TODO_FIREBASE_API_KEY',
-    authDomain: 'TODO_PROJECT_ID.firebaseapp.com',
-    projectId: 'TODO_PROJECT_ID',
-    storageBucket: 'TODO_PROJECT_ID.firebasestorage.app',
-    messagingSenderId: 'TODO_SENDER_ID',
-    appId: 'TODO_APP_ID',
+    apiKey: 'AIzaSyAsSqLzZDpGD-QOo3XN_R4aKPGfshd__as',
+    authDomain: 'media-log-7a097.firebaseapp.com',
+    projectId: 'media-log-7a097',
+    storageBucket: 'media-log-7a097.firebasestorage.app',
+    messagingSenderId: '735315871795',
+    appId: '1:735315871795:web:31e789cbd326ab0414bb46',
   },
 };
