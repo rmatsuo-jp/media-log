@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/rmatsuo-jp/media-log/compare/v0.3.2...v0.4.0) (2026-07-19)
+
+
+### Features
+
+* **pwa:** アプリアイコン・faviconをテーマに沿ったデザインに刷新 ([006bac8](https://github.com/rmatsuo-jp/media-log/commit/006bac871fa83da5b9bca1c2d57ee5dfac4c51cb))
+
 ## [0.3.2](https://github.com/rmatsuo-jp/media-log/compare/v0.3.1...v0.3.2) (2026-07-19)
 
 
