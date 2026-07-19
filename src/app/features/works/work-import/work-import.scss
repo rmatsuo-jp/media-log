@@ -1,4 +1,8 @@
-// ── 外部検索モーダル内のレイアウト。タイルはグリッドで並べる ──
+// ── 外部検索インラインパネル内のレイアウト。タイルはグリッドで並べる ──
+.work-import {
+  margin: var(--space-3) 0;
+}
+
 .cover-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));

@@ -1,4 +1,5 @@
-<!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加フォーム、
+<!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加導線
+     （外部検索パネルをタブ内に常時インライン表示、手動入力はトグルで展開するオプション）、
      下部に該当する作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
@@ -25,33 +26,34 @@
   @if (state.viewMode() === 'all') {
     <div class="form-group add-form">
       <label class="label">作品を追加</label>
-      <div class="add-row">
-        <select
-          class="select"
-          [value]="newMediaType()"
-          (change)="newMediaType.set($any($event.target).value)"
-        >
-          <option value="manga">マンガ</option>
-          <option value="anime">アニメ</option>
-        </select>
-        <input
-          class="text-input"
-          type="text"
-          placeholder="タイトル"
-          [value]="newTitle()"
-          (input)="newTitle.set($any($event.target).value)"
-          (keydown.enter)="addWork()"
-        />
-        <button class="btn-primary" type="button" (click)="addWork()">追加</button>
-      </div>
-      <button class="btn-secondary" type="button" (click)="openImport()">
-        外部検索から追加
-      </button>
-    </div>
+      <app-work-import />
 
-    @if (importOpen()) {
-      <app-work-import (closed)="closeImport()" (imported)="closeImport()" />
-    }
+      <button class="btn-secondary" type="button" (click)="toggleManual()">
+        手動で追加
+      </button>
+
+      @if (manualOpen()) {
+        <div class="add-row">
+          <select
+            class="select"
+            [value]="newMediaType()"
+            (change)="newMediaType.set($any($event.target).value)"
+          >
+            <option value="manga">マンガ</option>
+            <option value="anime">アニメ</option>
+          </select>
+          <input
+            class="text-input"
+            type="text"
+            placeholder="タイトル"
+            [value]="newTitle()"
+            (input)="newTitle.set($any($event.target).value)"
+            (keydown.enter)="addWork()"
+          />
+          <button class="btn-primary" type="button" (click)="addWork()">追加</button>
+        </div>
+      }
+    </div>
 
     @if (state.allWorksSorted().length === 0) {
       <p class="hint">まだ作品が登録されていません。</p>

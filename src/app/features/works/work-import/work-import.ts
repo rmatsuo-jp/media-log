@@ -1,6 +1,6 @@
 /**
- * @file 外部API（AniList/MangaDex）から作品を検索し、巻/話数の表紙イラストを見ながら取り込むモーダル。
- * ①検索→タイル選択 ②巻/話数候補選択 ③取り込み、の3ステップ。shared/ui/modalを初めて活用する。
+ * @file 外部API（AniList/MangaDex）から作品を検索し、巻/話数の表紙イラストを見ながら取り込むインラインパネル。
+ * ①検索→タイル選択 ②巻/話数候補選択 ③取り込み、の3ステップ。作品一覧タブ内に常時表示する（モーダルは使わない）。
  */
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
@@ -8,7 +8,6 @@ import { MediaType, Work } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { AnilistApiService } from '@core/external-media/anilist-api.service';
 import { MangadexApiService } from '@core/external-media/mangadex-api.service';
-import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { WorksStateService } from '../works-state.service';
@@ -17,7 +16,7 @@ type Step = 'search' | 'candidates';
 
 @Component({
   selector: 'app-work-import',
-  imports: [Modal, CoverTile, Spinner],
+  imports: [CoverTile, Spinner],
   templateUrl: './work-import.html',
   styleUrl: './work-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +26,6 @@ export class WorkImport {
   private mangadex = inject(MangadexApiService);
   private state = inject(WorksStateService);
 
-  closed = output<void>();
   imported = output<Work>();
 
   protected step = signal<Step>('search');
@@ -123,10 +121,10 @@ export class WorkImport {
       this.state.importUnitsAsGroup(work.id, this.groupTitle().trim() || '取り込み', chosen);
     }
     this.imported.emit(work);
-    this.closed.emit();
-  }
 
-  close(): void {
-    this.closed.emit();
+    this.step.set('search');
+    this.selectedWork.set(null);
+    this.query.set('');
+    this.searchResults.set([]);
   }
 }

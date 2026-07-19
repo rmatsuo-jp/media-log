@@ -1,7 +1,5 @@
-<!-- @file 外部検索モーダル。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。 -->
-<app-modal (closed)="close()">
-  <h2 class="page-title">外部検索から追加</h2>
-
+<!-- @file 外部検索インラインパネル（作品一覧タブ内に常時表示）。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。 -->
+<div class="work-import">
   @if (step() === 'search') {
     <div class="view-toggle">
       <button
@@ -96,4 +94,4 @@
       <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
     </div>
   }
-</app-modal>
+</div>
