@@ -27,7 +27,10 @@ export class MediaRepositoryService {
   readonly units = this.store.units;
 
   // ── Work ─────────────────────────────────────────────────────────
-  createWork(input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'>): Work {
+  createWork(
+    input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'> &
+      Partial<Pick<Work, 'externalSource' | 'externalId' | 'coverImageUrl'>>,
+  ): Work {
     const now = nowIso();
     const work: Work = { id: newId(), createdAt: now, updatedAt: now, ...input };
     this.store.saveWork(work);
@@ -41,6 +44,13 @@ export class MediaRepositoryService {
     this.sync.pushWorks([updated]);
   }
 
+  // 右クリックの表紙ピッカーで選び直した表紙候補を保存する。
+  updateWorkCover(work: Work, coverImageUrl: string): void {
+    const updated: Work = { ...work, coverImageUrl, updatedAt: nowIso() };
+    this.store.saveWork(updated);
+    this.sync.pushWorks([updated]);
+  }
+
   deleteWork(id: string): void {
     this.store.deleteWork(id);
     const work = this.store.allWorks().find((w) => w.id === id);
@@ -50,7 +60,10 @@ export class MediaRepositoryService {
   }
 
   // ── Group ────────────────────────────────────────────────────────
-  createGroup(input: Pick<Group, 'workId' | 'order' | 'title' | 'wantToConsume'>): Group {
+  createGroup(
+    input: Pick<Group, 'workId' | 'order' | 'title' | 'wantToConsume'> &
+      Partial<Pick<Group, 'coverImageUrl'>>,
+  ): Group {
     const now = nowIso();
     const group: Group = { id: newId(), createdAt: now, updatedAt: now, ...input };
     this.store.saveGroup(group);
@@ -72,7 +85,10 @@ export class MediaRepositoryService {
   }
 
   // ── Unit ─────────────────────────────────────────────────────────
-  createUnit(input: Pick<Unit, 'groupId' | 'workId' | 'number'>): Unit {
+  createUnit(
+    input: Pick<Unit, 'groupId' | 'workId' | 'number'> &
+      Partial<Pick<Unit, 'coverImageUrl' | 'coverImageCandidates'>>,
+  ): Unit {
     const now = nowIso();
     const unit: Unit = {
       id: newId(),
@@ -116,6 +132,13 @@ export class MediaRepositoryService {
       lastViewedAt: nowIso(),
       updatedAt: nowIso(),
     };
+    this.store.saveUnit(updated);
+    this.sync.pushUnits([updated]);
+  }
+
+  // 右クリックの表紙ピッカーで選び直した表紙候補を保存する。
+  updateUnitCover(unit: Unit, coverImageUrl: string): void {
+    const updated: Unit = { ...unit, coverImageUrl, updatedAt: nowIso() };
     this.store.saveUnit(updated);
     this.sync.pushUnits([updated]);
   }

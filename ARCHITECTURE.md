@@ -14,10 +14,15 @@ features/ ──▶ core/ ──▶ shared/
 - **core/** … 全 feature が共有する基盤（設定・Firebase・作品/記録データモデルと永続化）。feature を import してはならない。
 - **shared/** … アプリのドメインに依存しない汎用ユーティリティ（日付・クリップボード・localStorage等）とUIコンポーネント（badge/card/icon/modal/progress-bar/spinner）。
 
+feature内のコンポーネントが外部API呼び出し・検索条件・結果整形など複数責務を持ち始めた場合は、
+同じフォルダに専用サービス（例: `work-import/work-import-search.service.ts`）を切り出し、
+コンポーネントはUI選択状態とサービス呼び出しの橋渡しに専念させる。この分割はfeature内で完結し、
+他featureやcoreへは影響しない。書籍・映画などメディア種別拡張時にロジックを再利用・差し替えしやすくする狙い。
+
 ```mermaid
 graph TD
     subgraph Features["features/（遅延ロード。1フォルダ = 1拡張機能）"]
-        Works["works\n作品一覧・詳細（Group/Unit管理）\n(+ works-state.service)"]
+        Works["works\n作品一覧・詳細（Group/Unit管理）\n(+ works-state.service)\n(+ work-import: 検索/候補取得ロジックは\nwork-import-search.serviceに分離)"]
         Settings["settings\nテーマ・法的情報導線・アカウント\n(+ account-panel)"]
         Legal["legal\n利用規約・プライバシーポリシー等の表示"]
         Dev["dev（本番非搭載）\nlocalStorage生データダンプ"]

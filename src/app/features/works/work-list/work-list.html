@@ -1,81 +1,81 @@
-<!-- @file 作品一覧テンプレート。上部にビュー切替（作品一覧/読みたいリスト）と追加フォーム、
-     下部に該当する作品カードを並べる。 -->
+<!-- @file 作品一覧テンプレート。上部に共通の追加フォーム（app-add-work-form）、
+     マンガ/アニメ/すべての絞り込みトグル、下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
+     読みたいリストは独立ページ（wishlist）に分離済み。
+     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
+
+  <app-add-work-form />
 
   <div class="view-toggle">
     <button
       class="theme-btn"
-      [class.active]="state.viewMode() === 'all'"
-      (click)="setViewMode('all')"
       type="button"
+      [class.active]="mediaTypeFilter() === 'all'"
+      (click)="mediaTypeFilter.set('all')"
     >
-      作品一覧
+      すべて
     </button>
     <button
       class="theme-btn"
-      [class.active]="state.viewMode() === 'want'"
-      (click)="setViewMode('want')"
       type="button"
+      [class.active]="mediaTypeFilter() === 'manga'"
+      (click)="mediaTypeFilter.set('manga')"
     >
-      読みたいリスト
+      マンガ
+    </button>
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'anime'"
+      (click)="mediaTypeFilter.set('anime')"
+    >
+      アニメ
     </button>
   </div>
 
-  @if (state.viewMode() === 'all') {
-    <div class="form-group add-form">
-      <label class="label">作品を追加</label>
-      <div class="add-row">
-        <select
-          class="select"
-          [value]="newMediaType()"
-          (change)="newMediaType.set($any($event.target).value)"
-        >
-          <option value="manga">マンガ</option>
-          <option value="anime">アニメ</option>
-        </select>
-        <input
-          class="text-input"
-          type="text"
-          placeholder="タイトル"
-          [value]="newTitle()"
-          (input)="newTitle.set($any($event.target).value)"
-          (keydown.enter)="addWork()"
-        />
-        <button class="btn-primary" type="button" (click)="addWork()">追加</button>
-      </div>
-    </div>
-
-    @if (state.allWorksSorted().length === 0) {
-      <p class="hint">まだ作品が登録されていません。</p>
-    }
-    @for (work of state.allWorksSorted(); track work.id) {
+  @if (filteredWorks().length === 0) {
+    <p class="hint">まだ作品が登録されていません。</p>
+  }
+  <div class="work-grid">
+    @for (work of filteredWorks(); track work.id) {
       <a class="work-card" [routerLink]="['/works', work.id]">
-        <app-badge [variant]="work.mediaType === 'manga' ? 'default' : 'success'">{{
-          mediaTypeLabel(work.mediaType)
-        }}</app-badge>
-        <span class="work-title">{{ work.title }}</span>
-        @if (work.wantToConsume) {
-          <span class="want-mark">★</span>
-        }
-      </a>
-    }
-  } @else {
-    @if (state.wantToConsumeEntries().length === 0) {
-      <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
-    }
-    @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
-      <a class="work-card" [routerLink]="['/works', entry.work.id]">
-        <app-badge [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'">{{
-          mediaTypeLabel(entry.work.mediaType)
-        }}</app-badge>
-        <span class="work-title">{{ entry.work.title }}</span>
-        @if (!entry.work.wantToConsume) {
-          <span class="group-hint"
-            >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+        <span class="work-cover-wrap" (contextmenu)="onWorkCoverContextMenu($event, work)">
+          @if (work.coverImageUrl) {
+            <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
+          } @else {
+            <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
+          }
+          <app-badge
+            class="work-badge"
+            [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
+            >{{ mediaTypeLabel(work.mediaType) }}</app-badge
           >
-        }
+          @if (work.wantToConsume) {
+            <span class="want-mark">★</span>
+          }
+        </span>
+        <span class="work-title">{{ work.title }}</span>
       </a>
     }
+  </div>
+
+  @if (coverPickerWork(); as pickWork) {
+    <app-modal (closed)="closeCoverPickerWork()">
+      <h2 class="modal-title">{{ pickWork.title }}</h2>
+      @if ((pickWork.coverImageCandidates?.length ?? 0) > 0) {
+        <div class="cover-picker-grid">
+          @for (url of pickWork.coverImageCandidates; track url) {
+            <app-cover-tile
+              [imageUrl]="url"
+              [selected]="url === pickWork.coverImageUrl"
+              size="sm"
+              (tileClick)="selectWorkCover(url)"
+            />
+          }
+        </div>
+      }
+      <button class="btn-secondary" type="button" (click)="deleteWorkFromMenu()">作品を削除</button>
+    </app-modal>
   }
 </div>

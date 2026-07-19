@@ -2,12 +2,16 @@
  * @file works機能の状態・派生ロジックを集約するstate service。
  * MediaRepositoryServiceをinjectし、コンポーネントはこのサービス経由でのみ読み書きする
  * （CLAUDE.mdの「状態はfeature内の{feature}-state.serviceに集約する」パターン）。
+ * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
+ * 作品タイトルは日本語（titleNative）を優先して保存する（アプリ全体で日本語表記を基本とする）。
  */
-import { computed, Injectable, inject, signal } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
 import { MediaRepositoryService } from '@core/media/media-repository.service';
-
-export type WorksViewMode = 'all' | 'want';
+import {
+  ExternalUnitCandidate,
+  ExternalWorkSearchResult,
+} from '@core/external-media/external-media.model';
 
 // 「読みたい」ビューに出す1行。work.wantToConsumeがtrueなら全グループを、falseなら
 // wantToConsumeなグループのみを visibleGroups として持つ。
@@ -19,8 +23,6 @@ export interface WantToConsumeEntry {
 @Injectable({ providedIn: 'root' })
 export class WorksStateService {
   private repo = inject(MediaRepositoryService);
-
-  readonly viewMode = signal<WorksViewMode>('all');
 
   readonly works = this.repo.works;
   readonly groups = this.repo.groups;
@@ -107,5 +109,49 @@ export class WorksStateService {
 
   deleteUnit(id: string): void {
     this.repo.deleteUnit(id);
+  }
+
+  // ── 外部API連携（AniList/MangaDex）からの取り込み ──────────────────
+  importWorkFromExternal(result: ExternalWorkSearchResult): Work {
+    return this.repo.createWork({
+      title: result.titleNative ?? result.title,
+      mediaType: result.mediaType,
+      wantToConsume: false,
+      externalSource: result.externalSource,
+      externalId: result.externalId,
+      coverImageUrl: result.coverImageUrl,
+    });
+  }
+
+  importUnitsAsGroup(
+    workId: string,
+    groupTitle: string,
+    candidates: ExternalUnitCandidate[],
+  ): Group {
+    const order = this.groupsForWork(workId).length;
+    const group = this.repo.createGroup({
+      workId,
+      title: groupTitle,
+      order,
+      wantToConsume: false,
+    });
+    for (const candidate of candidates) {
+      this.repo.createUnit({
+        workId,
+        groupId: group.id,
+        number: candidate.number,
+        coverImageUrl: candidate.coverImageUrl,
+        coverImageCandidates: candidate.variantCoverImageUrls,
+      });
+    }
+    return group;
+  }
+
+  updateUnitCover(unit: Unit, coverImageUrl: string): void {
+    this.repo.updateUnitCover(unit, coverImageUrl);
+  }
+
+  updateWorkCover(work: Work, coverImageUrl: string): void {
+    this.repo.updateWorkCover(work, coverImageUrl);
   }
 }

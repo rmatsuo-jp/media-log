@@ -1,0 +1,251 @@
+<!-- @file 外部検索インラインパネル（作品一覧タブ内に常時表示）。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。
+     検索条件・結果・候補データはWorkImportSearchService（search）が保持し、テンプレートはsearch.*経由で参照する。
+     numberFilterで整数巻のみ/非整数巻のみ/すべて表示を切り替え可能。
+     mediaTypeは'both'も選択可能で、その場合は各タイルに種別バッジを表示する。
+     titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。
+     詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。
+     検索結果は10件ずつページングし、前へ/次へボタンで切り替える。
+     タイトル入力は2文字以上でデバウンス自動検索される（「検索」ボタン/Enterは即時検索）。 -->
+<div class="work-import">
+  @if (step() === 'search') {
+    <div class="view-toggle">
+      <button
+        class="theme-btn"
+        [class.active]="search.mediaType() === 'manga'"
+        type="button"
+        (click)="search.mediaType.set('manga')"
+      >
+        マンガ
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="search.mediaType() === 'anime'"
+        type="button"
+        (click)="search.mediaType.set('anime')"
+      >
+        アニメ
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="search.mediaType() === 'both'"
+        type="button"
+        (click)="search.mediaType.set('both')"
+      >
+        両方
+      </button>
+    </div>
+
+    <div class="add-row">
+      <input
+        class="text-input"
+        type="text"
+        placeholder="作品タイトルで検索"
+        [value]="search.query()"
+        (input)="search.query.set($any($event.target).value)"
+        (keydown.enter)="search.search()"
+      />
+      <button
+        class="btn-primary"
+        type="button"
+        (click)="search.search()"
+        [disabled]="search.searching()"
+      >
+        @if (search.searching()) {
+          <app-spinner />
+        } @else {
+          検索
+        }
+      </button>
+    </div>
+
+    <details class="advanced-settings">
+      <summary>詳細設定</summary>
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [checked]="search.includeAdult()"
+          (change)="search.setIncludeAdult($any($event.target).checked)"
+        />
+        成人向け作品を含める
+      </label>
+    </details>
+
+    @if (search.searchError()) {
+      <p class="hint error-text">{{ search.searchError() }}</p>
+    }
+
+    @if (search.searchResults().length > 0) {
+      <div class="view-toggle">
+        <button
+          class="theme-btn"
+          [class.active]="search.titleLang() === 'ja'"
+          type="button"
+          (click)="search.titleLang.set('ja')"
+        >
+          日本語
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="search.titleLang() === 'original'"
+          type="button"
+          (click)="search.titleLang.set('original')"
+        >
+          ローマ字/英語
+        </button>
+      </div>
+      <div class="view-toggle">
+        <button
+          class="theme-btn"
+          [class.active]="search.sortBy() === 'popularity'"
+          type="button"
+          (click)="search.setSortBy('popularity')"
+        >
+          人気度順
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="search.sortBy() === 'relevance'"
+          type="button"
+          (click)="search.setSortBy('relevance')"
+        >
+          関連度順
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="search.sortBy() === 'score'"
+          type="button"
+          (click)="search.setSortBy('score')"
+        >
+          スコア順
+        </button>
+      </div>
+    }
+
+    <div class="cover-grid">
+      @for (result of search.pagedResults(); track result.externalId) {
+        <div class="cover-tile-wrap">
+          <app-cover-tile
+            [imageUrl]="result.coverImageUrl"
+            [label]="search.displayTitle(result)"
+            (tileClick)="selectWork(result)"
+          />
+          @if (search.mediaType() === 'both') {
+            <app-badge
+              class="work-import-badge"
+              [variant]="result.mediaType === 'manga' ? 'default' : 'success'"
+            >
+              {{ result.mediaType === 'manga' ? 'マンガ' : 'アニメ' }}
+            </app-badge>
+          }
+        </div>
+      }
+    </div>
+    @if (search.sortedResults().length > 0) {
+      <div class="pagination-row">
+        <button
+          class="theme-btn"
+          type="button"
+          (click)="search.prevPage()"
+          [disabled]="search.page() === 0"
+        >
+          前へ
+        </button>
+        <button
+          class="theme-btn"
+          type="button"
+          (click)="search.nextPage()"
+          [disabled]="!search.hasNextPage()"
+        >
+          次へ
+        </button>
+      </div>
+    }
+    @if (!search.searching() && search.searchResults().length === 0) {
+      <p class="hint">検索語を入力してください。</p>
+    }
+  } @else if (selectedWork(); as work) {
+    <button class="link-button" type="button" (click)="backToSearch()">← 検索に戻る</button>
+    <h3>{{ search.displayTitle(work) }}</h3>
+
+    <div class="form-group">
+      <label class="label">グループ名</label>
+      <input
+        class="text-input"
+        type="text"
+        [value]="groupTitle()"
+        (input)="groupTitle.set($any($event.target).value)"
+      />
+    </div>
+
+    @if (search.loadingCandidates()) {
+      <app-spinner />
+    } @else if (search.candidates().length === 0) {
+      <p class="hint">
+        {{ work.mediaType === 'manga' ? '巻情報' : '話数サムネイル' }}
+        が見つかりませんでした。作品情報のみ取り込みます。
+      </p>
+    } @else {
+      <p class="hint">
+        取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。
+      </p>
+      <div class="view-toggle">
+        <button
+          class="theme-btn"
+          type="button"
+          [class.active]="search.numberFilter() === 'integer'"
+          (click)="search.numberFilter.set('integer')"
+        >
+          整数巻のみ
+        </button>
+        <button
+          class="theme-btn"
+          type="button"
+          [class.active]="search.numberFilter() === 'fractional'"
+          (click)="search.numberFilter.set('fractional')"
+        >
+          非整数巻のみ
+        </button>
+        <button
+          class="theme-btn"
+          type="button"
+          [class.active]="search.numberFilter() === 'all'"
+          (click)="search.numberFilter.set('all')"
+        >
+          すべて
+        </button>
+      </div>
+      <div class="cover-grid">
+        @for (candidate of search.visibleCandidates(); track candidate.number) {
+          <div class="cover-tile-wrap">
+            <app-cover-tile
+              [imageUrl]="search.coverUrlFor(candidate)"
+              [label]="
+                candidate.title ??
+                (work.mediaType === 'manga'
+                  ? candidate.number + '巻'
+                  : '第' + candidate.number + '話')
+              "
+              [selected]="isSelected(candidate.number)"
+              size="sm"
+              (tileClick)="toggleCandidate(candidate.number)"
+            />
+            @if ((candidate.variantCoverImageUrls?.length ?? 0) > 1) {
+              <button
+                class="variant-switch-btn"
+                type="button"
+                title="他の表紙候補に切り替え"
+                (click)="search.cycleVariant(candidate); $event.stopPropagation()"
+              >
+                他の表紙
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <div class="work-actions">
+      <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
+    </div>
+  }
+</div>

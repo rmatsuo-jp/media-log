@@ -1,0 +1,101 @@
+// ── 外部検索インラインパネル内のレイアウト。タイルはグリッドで並べる ──
+.work-import {
+  margin: var(--space-3) 0;
+}
+
+.cover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+@media (min-width: 768px) {
+  .cover-grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1rem;
+  }
+}
+
+// ── 検索結果の前へ/次へページング ──
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+// ── 同一巻の代替表紙切り替えボタンをタイルに重ねて表示 ──
+.cover-tile-wrap {
+  position: relative;
+}
+
+.variant-switch-btn {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-surface-overlay, rgba(0, 0, 0, 0.65));
+  color: var(--color-on-overlay, #fff);
+  cursor: pointer;
+}
+
+// ── 「両方」検索時、タイル右上に種別バッジを重ねて表示 ──
+.work-import-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+.error-text {
+  color: var(--color-error);
+}
+
+// ── ボタン群のサイズをこのフォーム内でのみ統一（グローバル定義は他画面と共有のため変更しない） ──
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: var(--space-3);
+
+  .theme-btn {
+    font-size: 0.9375rem;
+  }
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+
+  .text-input {
+    flex: 1;
+  }
+
+  .btn-primary {
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    flex-shrink: 0;
+  }
+}
+
+// ── 詳細設定（成人向け表示切り替え等） ──
+.advanced-settings {
+  margin: var(--space-2) 0;
+  font-size: 0.9rem;
+
+  summary {
+    cursor: pointer;
+    color: var(--color-text-muted, inherit);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    cursor: pointer;
+  }
+}

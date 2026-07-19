@@ -58,10 +58,34 @@
       <span>作品</span>
     </a>
     <a
-      routerLink="/settings"
+      routerLink="/wishlist"
       routerLinkActive="active"
       #rla2="routerLinkActive"
       [attr.aria-current]="rla2.isActive ? 'page' : null"
+      class="nav-item"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polygon
+          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        />
+      </svg>
+      <span>読みたい</span>
+    </a>
+    <a
+      routerLink="/settings"
+      routerLinkActive="active"
+      #rla3="routerLinkActive"
+      [attr.aria-current]="rla3.isActive ? 'page' : null"
       class="nav-item"
     >
       <svg
@@ -86,8 +110,8 @@
       <a
         routerLink="/dev"
         routerLinkActive="active"
-        #rla3="routerLinkActive"
-        [attr.aria-current]="rla3.isActive ? 'page' : null"
+        #rla4="routerLinkActive"
+        [attr.aria-current]="rla4.isActive ? 'page' : null"
         class="nav-item"
       >
         <svg

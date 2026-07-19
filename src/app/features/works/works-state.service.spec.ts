@@ -212,5 +212,54 @@ describe('WorksStateService', () => {
       state.deleteUnit('u1');
       expect(repoStub.deleteUnit).toHaveBeenCalledWith('u1');
     });
+
+    it('importWorkFromExternal()は外部検索結果からrepo.createWorkに委譲する', () => {
+      const { state, repoStub } = setupWithRepoSpy();
+      state.importWorkFromExternal({
+        mediaType: 'manga',
+        externalSource: 'mangadex',
+        externalId: 'manga-1',
+        title: '鬼滅の刃',
+        coverImageUrl: 'https://example.com/cover.jpg',
+      });
+      expect(repoStub.createWork).toHaveBeenCalledWith({
+        title: '鬼滅の刃',
+        mediaType: 'manga',
+        wantToConsume: false,
+        externalSource: 'mangadex',
+        externalId: 'manga-1',
+        coverImageUrl: 'https://example.com/cover.jpg',
+      });
+    });
+
+    it('importUnitsAsGroup()はグループを1件作成し、候補ごとにcoverImageUrl付きUnitを作成する', () => {
+      const { state, repoStub } = setupWithRepoSpy();
+      const createdGroup = group({ id: 'g-new', workId: 'w1', order: 0, title: '1-2巻' });
+      repoStub.createGroup.mockReturnValue(createdGroup);
+
+      state.importUnitsAsGroup('w1', '1-2巻', [
+        { number: 1, coverImageUrl: 'https://example.com/v1.jpg' },
+        { number: 2, coverImageUrl: 'https://example.com/v2.jpg' },
+      ]);
+
+      expect(repoStub.createGroup).toHaveBeenCalledWith({
+        workId: 'w1',
+        title: '1-2巻',
+        order: 0,
+        wantToConsume: false,
+      });
+      expect(repoStub.createUnit).toHaveBeenNthCalledWith(1, {
+        workId: 'w1',
+        groupId: 'g-new',
+        number: 1,
+        coverImageUrl: 'https://example.com/v1.jpg',
+      });
+      expect(repoStub.createUnit).toHaveBeenNthCalledWith(2, {
+        workId: 'w1',
+        groupId: 'g-new',
+        number: 2,
+        coverImageUrl: 'https://example.com/v2.jpg',
+      });
+    });
   });
 });
