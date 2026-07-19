@@ -20,4 +20,4 @@
 
 ## 既知の問題
 
-- **CIのカバレッジ閾値未達**: `npx ng test --coverage`が`angular.json`の`coverageThresholds`（lines 65%/functions 60%/statements 60%/branches 55%）を満たせず、CIの`test`ジョブが恒常的に失敗している（2026-07-19時点で実測 lines 50.46%/functions 30.53%/statements 49.88%/branches 45.13%）。主な原因は`core/media/media-firestore-sync.service.ts`・`media-repository.service.ts`・`features/works/works-state.service.ts`のテスト未整備。テスト追加 or 閾値見直しが必要。Dependabot等の無関係なPRもこれによりCIが赤くなる。
+（2026-07-19: CIのカバレッジ閾値未達は`media-firestore-sync.service.spec.ts`・`media-repository.service.spec.ts`追加、および`works-state.service.spec.ts`拡充により解消。全体でlines 88.23%/functions 82.44%/statements 85.61%/branches 70.13%まで改善。）
