@@ -44,6 +44,13 @@ export class MediaRepositoryService {
     this.sync.pushWorks([updated]);
   }
 
+  // 右クリックの表紙ピッカーで選び直した表紙候補を保存する。
+  updateWorkCover(work: Work, coverImageUrl: string): void {
+    const updated: Work = { ...work, coverImageUrl, updatedAt: nowIso() };
+    this.store.saveWork(updated);
+    this.sync.pushWorks([updated]);
+  }
+
   deleteWork(id: string): void {
     this.store.deleteWork(id);
     const work = this.store.allWorks().find((w) => w.id === id);

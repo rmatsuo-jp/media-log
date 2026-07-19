@@ -6,6 +6,8 @@
  * coverImageUrl は外部API連携（AniList/MangaDex等）から取り込んだ表紙イラストのURL（任意）。
  * Unit.coverImageCandidates は取り込み時に見つかった同一巻の代替表紙候補。2件以上あれば
  * work-detail画面での右クリック切り替え（表紙ピッカー）が有効になる。
+ * Work.coverImageCandidates は同じ形の受け皿（現時点では取り込みロジック未実装）。作品一覧の
+ * カバー右クリックでは候補数に関わらず削除メニューが常に開く。
  */
 
 export type MediaType = 'manga' | 'anime'; // 将来 'movie' | 'book' を追加
@@ -18,6 +20,7 @@ export interface Work {
   externalSource?: string; // 外部API連携元（例: 'anilist' | 'mangadex'）
   externalId?: string;
   coverImageUrl?: string; // 外部APIから取り込んだ表紙イラストURL
+  coverImageCandidates?: string[]; // 代替表紙候補（2件以上で右クリック切り替え可能）
   createdAt: string; // ISO
   updatedAt: string; // ISO
   deleted?: boolean; // tombstone

@@ -96,3 +96,17 @@
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }
+
+// ── 作品カバー右クリックメニュー（表紙候補選択＋削除） ──
+.modal-title {
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.cover-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+  max-width: 20rem;
+  margin-bottom: 0.75rem;
+}

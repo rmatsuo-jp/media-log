@@ -149,4 +149,8 @@ export class WorksStateService {
   updateUnitCover(unit: Unit, coverImageUrl: string): void {
     this.repo.updateUnitCover(unit, coverImageUrl);
   }
+
+  updateWorkCover(work: Work, coverImageUrl: string): void {
+    this.repo.updateWorkCover(work, coverImageUrl);
+  }
 }

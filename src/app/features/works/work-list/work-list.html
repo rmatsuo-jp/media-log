@@ -1,6 +1,7 @@
 <!-- @file 作品一覧テンプレート。上部に追加導線（外部検索パネルを常時インライン表示、
      手動入力はトグルで展開するオプション）、下部に作品カードを画像優先のグリッドで並べる
-     （画像下部にタイトル）。読みたいリストは独立ページ（wishlist）に分離済み。 -->
+     （画像下部にタイトル）。読みたいリストは独立ページ（wishlist）に分離済み。
+     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
 
@@ -41,7 +42,10 @@
   <div class="work-grid">
     @for (work of state.allWorksSorted(); track work.id) {
       <a class="work-card" [routerLink]="['/works', work.id]">
-        <span class="work-cover-wrap">
+        <span
+          class="work-cover-wrap"
+          (contextmenu)="onWorkCoverContextMenu($event, work)"
+        >
           @if (work.coverImageUrl) {
             <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
           } @else {
@@ -60,4 +64,25 @@
       </a>
     }
   </div>
+
+  @if (coverPickerWork(); as pickWork) {
+    <app-modal (closed)="closeCoverPickerWork()">
+      <h2 class="modal-title">{{ pickWork.title }}</h2>
+      @if ((pickWork.coverImageCandidates?.length ?? 0) > 0) {
+        <div class="cover-picker-grid">
+          @for (url of pickWork.coverImageCandidates; track url) {
+            <app-cover-tile
+              [imageUrl]="url"
+              [selected]="url === pickWork.coverImageUrl"
+              size="sm"
+              (tileClick)="selectWorkCover(url)"
+            />
+          }
+        </div>
+      }
+      <button class="btn-secondary" type="button" (click)="deleteWorkFromMenu()">
+        作品を削除
+      </button>
+    </app-modal>
+  }
 </div>
