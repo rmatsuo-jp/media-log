@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Firestore セキュリティルール。
+// クラウド同期はホワイトリスト制: 許可メールアドレスのユーザーのみ、本人 UID のサブツリーを
+// 読み書きできる。それ以外（未マッチパス・非許可ユーザー）はすべて拒否する。
+// 目的: アプリは GitHub Pages で公開されており誰でもログインを試せるため、
+//       第三者によるオーナーの Firebase 無料枠消費を防ぐ。
+// メール追加時はクライアント側の src/app/core/firebase/auth.constants.ts と必ず同期させること。
+// 反映方法: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 許可ユーザー判定: Google SSO の ID トークンに含まれるメールがホワイトリストにあり、
+    // かつメール所有が検証済み（email_verified）であること。
+    function isAllowedUser() {
+      return request.auth != null
+        && request.auth.token.email in ['dreamskyryou@gmail.com']
+        && request.auth.token.email_verified == true;
+    }
+
+    // apps/media_log/users/{uid}/... 配下は許可ユーザーかつ本人のUIDのみ読み書き可能。
+    // Phase 2でデータモデル（works/logs等）が確定次第、コレクション名を追記する。
+    match /apps/media_log/users/{uid}/{document=**} {
+      allow read, write: if isAllowedUser() && request.auth.uid == uid;
+    }
+  }
+}

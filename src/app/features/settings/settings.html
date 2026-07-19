@@ -1,0 +1,70 @@
+<!-- @file Settings ページテンプレート。セクション順はテーマ → 表示言語 → 法的情報 → GitHubリポジトリ → アカウント（Google SSO 同期）。
+     全文言は i18n.t()（core/i18n/I18nService）経由で表示し、言語トグルの操作にリロードなしで追随する。 -->
+<div class="page">
+  <h1 class="page-title">{{ i18n.t('settings.title') }}</h1>
+
+  <div class="form-group">
+    <label class="label">{{ i18n.t('settings.theme') }}</label>
+    <div class="theme-toggle">
+      <button
+        class="theme-btn"
+        [class.active]="settings().theme === 'light'"
+        (click)="updateTheme('light')"
+        type="button"
+      >
+        {{ i18n.t('settings.themeLight') }}
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="settings().theme === 'dark'"
+        (click)="updateTheme('dark')"
+        type="button"
+      >
+        {{ i18n.t('settings.themeDark') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 表示言語（サイドバーの言語トグルと同じ設定を共有する。モバイルではここが唯一の入口） ── -->
+  <div class="form-group">
+    <label class="label">{{ i18n.t('settings.language') }}</label>
+    <div class="theme-toggle">
+      <button
+        class="theme-btn"
+        [class.active]="i18n.lang() === 'ja'"
+        (click)="updateLanguage('ja')"
+        type="button"
+      >
+        {{ i18n.t('settings.languageJa') }}
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="i18n.lang() === 'en'"
+        (click)="updateLanguage('en')"
+        type="button"
+      >
+        {{ i18n.t('settings.languageEn') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 法的情報（データの送信先・利用条件・免責事項） ── -->
+  <div class="form-group">
+    <label class="label">{{ i18n.t('settings.legal') }}</label>
+    <p class="hint">
+      <a routerLink="/legal/privacy">Privacy Policy</a> ・
+      <a routerLink="/legal/terms">Terms of Service</a> ・
+      <a routerLink="/legal/disclaimer">Disclaimer</a>
+    </p>
+  </div>
+
+  <!-- ── GitHubリポジトリ ─────────── -->
+  <div class="form-group">
+    <label class="label">{{ i18n.t('settings.github') }}</label>
+    <p class="hint">
+      <a [href]="githubUrl" target="_blank" rel="noopener">{{ githubUrl }}</a>
+    </p>
+  </div>
+
+  <app-account-panel />
+</div>

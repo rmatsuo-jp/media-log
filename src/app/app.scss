@@ -1,0 +1,250 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; // dvh非対応環境向けフォールバック
+  height: 100dvh;
+  background: var(--color-bg);
+  // bottom-nav自身の高さ決定には使わない（自己参照によるResizeObserver増殖ループを避けるため）。
+  // .app-content/.global-noticeがbottom-nav分の余白を確保するためだけに参照する。
+  // この値はJS実行前の初期値・フォールバックに過ぎず、app.tsのResizeObserverが
+  // #bottomNavの実高さ（ラベル折り返し等で変動しうる）で同じ要素に上書きする。
+  --bottom-nav-height: 4.5rem;
+}
+
+.app-content {
+  position: relative; // content-topbarの絶対配置の基準にする
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.625rem 0;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+
+  &.active {
+    color: var(--color-primary);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+// ── サイドバーヘッダー（タイトル+格納ボタン。モバイルの下部タブバーでは不要なので既定は非表示） ──
+.sidebar-header {
+  display: none;
+}
+
+// ── 言語トグル（日/EN、サイドバー最下部）。モバイルでは lang-toggle-mobile を使うので既定は非表示 ──
+.lang-toggle {
+  display: none;
+}
+
+// ── サイドバー格納時の単一ボタン言語トグル（日⇔ENを交互表示・切替）。既定（モバイル/展開時）は非表示 ──
+.lang-toggle-collapsed {
+  display: none;
+}
+
+// ── 言語トグル共通ボタンスタイル（.theme-btn＝設定画面のライト/ダーク切替と統一） ──
+.lang-btn {
+  padding: 0.625rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    background 0.2s;
+
+  &.active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+  }
+}
+
+// ── PC レイアウト（768px 以上）────────────────────────────────────
+@media (min-width: 768px) {
+  .app-shell {
+    flex-direction: row;
+    // サイドバー化するため下部タブ用の余白確保は不要
+    --bottom-nav-height: 0rem;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    width: 220px;
+    height: 100vh;
+    flex-direction: column;
+    align-items: stretch;
+    border-top: none;
+    border-right: 1px solid var(--color-border);
+    padding-bottom: 0;
+    transition: width 0.2s ease;
+
+    &.collapsed {
+      width: 64px;
+
+      .nav-item {
+        justify-content: center;
+        padding: 0.875rem 0;
+
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+
+    .collapsed & {
+      justify-content: center;
+      padding: 0.75rem 0;
+    }
+  }
+
+  .sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+
+    .collapsed & {
+      span {
+        display: none;
+      }
+    }
+  }
+
+  .sidebar-logo {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+  }
+
+  // ── 言語トグル（日/EN、ナビ項目の下＝サイドバー最下部）。格納時（.collapsed）は幅を圧迫しないよう非表示にする ──
+  .lang-toggle {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.375rem;
+    margin: auto 1.25rem 0.75rem;
+
+    .collapsed & {
+      display: none;
+    }
+
+    // ── PC版は日/ENを同幅に揃える（テキスト幅任せだとバランスが崩れるため） ──
+    .lang-btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  // ── 格納時のみ表示する単一ボタン言語トグル（幅64pxのサイドバーに収まるよう1ボタンで日⇔ENを交互切替） ──
+  .lang-toggle-collapsed {
+    display: none;
+    flex: 0 0 auto;
+    margin: auto auto 0.75rem;
+    padding: 0.5rem 0.625rem;
+    border: 2px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    .collapsed & {
+      display: block;
+    }
+  }
+
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: 0.375rem;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    svg {
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .collapsed & svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
+    gap: 0.75rem;
+  }
+
+  .app-content {
+    padding-bottom: 1rem;
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    transition:
+      margin-left 0.2s ease,
+      width 0.2s ease;
+  }
+
+  .app-shell.sidebar-collapsed .app-content {
+    margin-left: 64px;
+    width: calc(100% - 64px);
+  }
+}
