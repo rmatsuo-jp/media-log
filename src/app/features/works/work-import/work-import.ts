@@ -5,6 +5,9 @@
  * variantIndexByNumber signalでユーザーが手動で切り替えられるようにする。
  * 1.5巻等の非整数巻は特別版/非売品であることが多いため、numberFilter signalで
  * 「整数のみ／非整数のみ／すべて」の3択表示に絞り込める。
+ * mediaType signalは'both'を許容し、AniListに種別フィルタなしで検索させる（種別は結果ごとに判定）。
+ * titleLang signalでタイトル表示をローマ字/英語⇔日本語(titleNative)に切り替え、
+ * sortBy signalで検索結果を人気度/スコア順に並び替えられる。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
@@ -14,14 +17,18 @@ import { AnilistApiService } from '@core/external-media/anilist-api.service';
 import { MangadexApiService } from '@core/external-media/mangadex-api.service';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
+import { Badge } from '@shared/ui/badge/badge';
 import { WorksStateService } from '../works-state.service';
 
 type Step = 'search' | 'candidates';
 type NumberFilter = 'all' | 'integer' | 'fractional';
+type MediaTypeFilter = MediaType | 'both';
+type TitleLang = 'original' | 'ja';
+type SortBy = 'relevance' | 'popularity' | 'score';
 
 @Component({
   selector: 'app-work-import',
-  imports: [CoverTile, Spinner],
+  imports: [CoverTile, Spinner, Badge],
   templateUrl: './work-import.html',
   styleUrl: './work-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,11 +41,13 @@ export class WorkImport {
   imported = output<Work>();
 
   protected step = signal<Step>('search');
-  protected mediaType = signal<MediaType>('manga');
+  protected mediaType = signal<MediaTypeFilter>('manga');
   protected query = signal('');
   protected searching = signal(false);
   protected searchError = signal<string | null>(null);
   protected searchResults = signal<ExternalWorkSearchResult[]>([]);
+  protected titleLang = signal<TitleLang>('original');
+  protected sortBy = signal<SortBy>('relevance');
 
   protected selectedWork = signal<ExternalWorkSearchResult | null>(null);
   protected loadingCandidates = signal(false);
@@ -55,8 +64,27 @@ export class WorkImport {
     return this.candidates().filter((c) => !Number.isInteger(c.number));
   });
 
-  setMediaType(type: MediaType): void {
+  protected sortedResults = computed(() => {
+    const sortBy = this.sortBy();
+    if (sortBy === 'relevance') return this.searchResults();
+    const key = sortBy === 'popularity' ? 'popularity' : 'averageScore';
+    return [...this.searchResults()].sort((a, b) => (b[key] ?? -1) - (a[key] ?? -1));
+  });
+
+  setMediaType(type: MediaTypeFilter): void {
     this.mediaType.set(type);
+  }
+
+  setTitleLang(lang: TitleLang): void {
+    this.titleLang.set(lang);
+  }
+
+  setSortBy(sortBy: SortBy): void {
+    this.sortBy.set(sortBy);
+  }
+
+  displayTitle(result: ExternalWorkSearchResult): string {
+    return this.titleLang() === 'ja' ? (result.titleNative ?? result.title) : result.title;
   }
 
   search(): void {

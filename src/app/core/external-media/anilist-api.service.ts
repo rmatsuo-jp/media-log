@@ -1,6 +1,8 @@
 /**
  * @file AniList GraphQL API（https://graphql.anilist.co）のクライアント。APIキー不要。
  * マンガ・アニメ横断の作品検索とシリーズ表紙、アニメの話数サムネイル（取得できる作品のみ）を提供する。
+ * searchWorksはmediaTypeに'both'を渡すと種別フィルタなしで検索し、結果ごとの実際の種別(m.type)を
+ * 反映する。日本語タイトル(titleNative)・人気度(popularity)・スコア(averageScore)も併せて返す。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -23,9 +25,12 @@ interface AniListStreamingEpisode {
 
 interface AniListMedia {
   id: number;
+  type: 'ANIME' | 'MANGA';
   title: AniListTitle;
   coverImage: { large: string | null } | null;
   format: string | null;
+  averageScore: number | null;
+  popularity: number | null;
   streamingEpisodes: AniListStreamingEpisode[] | null;
 }
 
@@ -45,16 +50,19 @@ function pickTitle(title: AniListTitle): string {
 export class AnilistApiService {
   private http = inject(HttpClient);
 
-  searchWorks(query: string, mediaType: MediaType): Observable<ExternalWorkSearchResult[]> {
-    const anilistType = mediaType === 'manga' ? 'MANGA' : 'ANIME';
+  searchWorks(query: string, mediaType: MediaType | 'both'): Observable<ExternalWorkSearchResult[]> {
+    const anilistType = mediaType === 'both' ? null : mediaType === 'manga' ? 'MANGA' : 'ANIME';
     const graphqlQuery = `
       query ($search: String, $type: MediaType) {
         Page(page: 1, perPage: 20) {
           media(search: $search, type: $type) {
             id
+            type
             title { romaji english native }
             coverImage { large }
             format
+            averageScore
+            popularity
           }
         }
       }
@@ -67,12 +75,15 @@ export class AnilistApiService {
       .pipe(
         map((res) =>
           res.data.Page.media.map((m) => ({
-            mediaType,
+            mediaType: m.type === 'MANGA' ? ('manga' as const) : ('anime' as const),
             externalSource: 'anilist' as const,
             externalId: String(m.id),
             title: pickTitle(m.title),
+            titleNative: m.title.native ?? undefined,
             coverImageUrl: m.coverImage?.large ?? undefined,
             format: m.format ?? undefined,
+            averageScore: m.averageScore ?? undefined,
+            popularity: m.popularity ?? undefined,
           })),
         ),
       );

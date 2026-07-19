@@ -10,8 +10,12 @@ export interface ExternalWorkSearchResult {
   externalSource: ExternalSource;
   externalId: string;
   title: string;
+  /** 日本語（現地語）表記のタイトル。取得できない場合は未設定。 */
+  titleNative?: string;
   coverImageUrl?: string;
   format?: string;
+  averageScore?: number;
+  popularity?: number;
 }
 
 export interface ExternalUnitCandidate {

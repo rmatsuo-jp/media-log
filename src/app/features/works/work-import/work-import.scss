@@ -29,6 +29,13 @@
   cursor: pointer;
 }
 
+// ── 「両方」検索時、タイル右上に種別バッジを重ねて表示 ──
+.work-import-badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
 .error-text {
   color: var(--color-error);
 }

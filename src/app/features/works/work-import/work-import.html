@@ -1,5 +1,7 @@
 <!-- @file 外部検索インラインパネル（作品一覧タブ内に常時表示）。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。
-     numberFilterで整数巻のみ/非整数巻のみ/すべて表示を切り替え可能。 -->
+     numberFilterで整数巻のみ/非整数巻のみ/すべて表示を切り替え可能。
+     mediaTypeは'both'も選択可能で、その場合は各タイルに種別バッジを表示する。
+     titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。 -->
 <div class="work-import">
   @if (step() === 'search') {
     <div class="view-toggle">
@@ -18,6 +20,14 @@
         (click)="setMediaType('anime')"
       >
         アニメ
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="mediaType() === 'both'"
+        type="button"
+        (click)="setMediaType('both')"
+      >
+        両方
       </button>
     </div>
 
@@ -43,13 +53,67 @@
       <p class="hint error-text">{{ searchError() }}</p>
     }
 
+    @if (searchResults().length > 0) {
+      <div class="view-toggle">
+        <button
+          class="theme-btn"
+          [class.active]="titleLang() === 'original'"
+          type="button"
+          (click)="setTitleLang('original')"
+        >
+          ローマ字/英語
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="titleLang() === 'ja'"
+          type="button"
+          (click)="setTitleLang('ja')"
+        >
+          日本語
+        </button>
+      </div>
+      <div class="view-toggle">
+        <button
+          class="theme-btn"
+          [class.active]="sortBy() === 'relevance'"
+          type="button"
+          (click)="setSortBy('relevance')"
+        >
+          関連度順
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="sortBy() === 'popularity'"
+          type="button"
+          (click)="setSortBy('popularity')"
+        >
+          人気度順
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="sortBy() === 'score'"
+          type="button"
+          (click)="setSortBy('score')"
+        >
+          スコア順
+        </button>
+      </div>
+    }
+
     <div class="cover-grid">
-      @for (result of searchResults(); track result.externalId) {
-        <app-cover-tile
-          [imageUrl]="result.coverImageUrl"
-          [label]="result.title"
-          (tileClick)="selectWork(result)"
-        />
+      @for (result of sortedResults(); track result.externalId) {
+        <div class="cover-tile-wrap">
+          <app-cover-tile
+            [imageUrl]="result.coverImageUrl"
+            [label]="displayTitle(result)"
+            (tileClick)="selectWork(result)"
+          />
+          @if (mediaType() === 'both') {
+            <app-badge class="work-import-badge" [variant]="result.mediaType === 'manga' ? 'default' : 'success'">
+              {{ result.mediaType === 'manga' ? 'マンガ' : 'アニメ' }}
+            </app-badge>
+          }
+        </div>
       }
     </div>
     @if (!searching() && searchResults().length === 0) {
@@ -57,7 +121,7 @@
     }
   } @else if (selectedWork(); as work) {
     <button class="link-button" type="button" (click)="backToSearch()">← 検索に戻る</button>
-    <h3>{{ work.title }}</h3>
+    <h3>{{ displayTitle(work) }}</h3>
 
     <div class="form-group">
       <label class="label">グループ名</label>
