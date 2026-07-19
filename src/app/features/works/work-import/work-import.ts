@@ -15,9 +15,13 @@
  * （検索・並び替え変更時はpageを0に戻す）。
  * includeAdult signalは詳細設定で成人向け作品を検索結果に含めるかどうかを切り替え、
  * WorkImportSettingsServiceでlocalStorageに永続化する（デフォルトfalse=除外）。
+ * query/mediaType/includeAdultの変更はtoObservable()経由でdebounceTime(400ms)し、
+ * トリム後2文字未満でなければ自動検索する（入力補助）。実処理はperformSearch()に集約し、
+ * 「検索」ボタン/Enterキーによる即時検索（search()）と共通化している。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
-import { of, switchMap } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { combineLatest, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { MediaType, Work } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { AnilistApiService } from '@core/external-media/anilist-api.service';
@@ -61,6 +65,23 @@ export class WorkImport {
   protected sortBy = signal<SortBy>('popularity');
   protected page = signal(0);
   protected includeAdult = signal(this.importSettings.getSettings().includeAdult);
+
+  constructor() {
+    combineLatest([toObservable(this.query), toObservable(this.mediaType), toObservable(this.includeAdult)])
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged((a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2]),
+      )
+      .subscribe(([query, mediaType, includeAdult]) => {
+        if (this.step() !== 'search') return;
+        const trimmed = query.trim();
+        if (trimmed.length < 2) {
+          this.searchResults.set([]);
+          return;
+        }
+        this.performSearch(trimmed, mediaType, includeAdult);
+      });
+  }
 
   protected selectedWork = signal<ExternalWorkSearchResult | null>(null);
   protected loadingCandidates = signal(false);
@@ -124,9 +145,13 @@ export class WorkImport {
   search(): void {
     const query = this.query().trim();
     if (!query) return;
+    this.performSearch(query, this.mediaType(), this.includeAdult());
+  }
+
+  private performSearch(query: string, mediaType: MediaTypeFilter, includeAdult: boolean): void {
     this.searching.set(true);
     this.searchError.set(null);
-    this.anilist.searchWorks(query, this.mediaType(), this.includeAdult()).subscribe({
+    this.anilist.searchWorks(query, mediaType, includeAdult).subscribe({
       next: (results) => {
         this.searchResults.set(results);
         this.page.set(0);
