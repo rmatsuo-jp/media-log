@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/rmatsuo-jp/media-log/compare/v0.3.0...v0.3.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* apply prettier formatting to unformatted files ([8db5840](https://github.com/rmatsuo-jp/media-log/commit/8db5840c837d05befb54bd80090df4406b7f719d))
+
 # [0.3.0](https://github.com/rmatsuo-jp/media-log/compare/v0.2.0...v0.3.0) (2026-07-19)
 
 
