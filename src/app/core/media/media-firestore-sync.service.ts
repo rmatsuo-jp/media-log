@@ -146,13 +146,13 @@ export class MediaFirestoreSyncService {
   // ログイン直後に呼ぶ双方向同期（tombstone対応）。works/groups/unitsそれぞれについて、
   // ローカル・クラウドをidで突き合わせてマージし、食い違う分をクラウドへpushする。
   async syncFromCloud(uid: string): Promise<void> {
-    await this.syncCollection(uid, 'works', this.store.allWorks(), (merged) =>
+    await this.syncCollection(uid, 'works', () => this.store.allWorks(), (merged) =>
       this.store.persistWorks(merged as Work[]),
     );
-    await this.syncCollection(uid, 'groups', this.store.allGroups(), (merged) =>
+    await this.syncCollection(uid, 'groups', () => this.store.allGroups(), (merged) =>
       this.store.persistGroups(merged as Group[]),
     );
-    await this.syncCollection(uid, 'units', this.store.allUnits(), (merged) =>
+    await this.syncCollection(uid, 'units', () => this.store.allUnits(), (merged) =>
       this.store.persistUnits(merged as Unit[]),
     );
   }
@@ -160,12 +160,13 @@ export class MediaFirestoreSyncService {
   private async syncCollection<T extends { id: string; deleted?: boolean }>(
     uid: string,
     col: 'works' | 'groups' | 'units',
-    local: T[],
+    getLocal: () => T[],
     persist: (merged: T[]) => void,
   ): Promise<void> {
     const snap = await getDocs(this.colRef(uid, col));
     const cloud = snap.docs.map((d) => d.data() as T);
-    const merged = mergeByIdWithTombstone(local, cloud);
+    // getDocsの待機中にユーザー操作でローカルが更新されている可能性があるため、ここで読み直す。
+    const merged = mergeByIdWithTombstone(getLocal(), cloud);
     persist(merged);
 
     const cloudById = new Map(cloud.map((v) => [v.id, v]));
