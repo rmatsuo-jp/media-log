@@ -1,5 +1,6 @@
 <!-- @file 作品詳細テンプレート。Group→Unitの階層表示、既読トグル・周回カウント・
-     読みたいフラグの操作、グループ/Unit追加フォームを持つ。 -->
+     読みたいフラグの操作、グループ/Unit追加フォームを持つ。
+     Unit一覧は画像中心のグリッドカードで、巻/話ラベルはw.mediaTypeで分岐。 -->
 <div class="page">
   @if (work(); as w) {
     <div class="work-header">
@@ -32,22 +33,30 @@
           <button class="link-button" type="button" (click)="deleteGroup(group)">削除</button>
         </div>
 
-        @for (unit of unitsForGroup(group.id); track unit.id) {
-          <div class="unit-row">
-            @if (unit.coverImageUrl) {
-              <img class="unit-cover" [src]="unit.coverImageUrl" alt="" loading="lazy" />
-            }
-            <label class="unit-checkbox">
-              <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
-              <span>第{{ unit.number }}話・巻</span>
-            </label>
-            <span class="view-count">{{ unit.viewCount }}回</span>
-            <button class="link-button" type="button" (click)="incrementViewCount(unit)">
-              +1周
-            </button>
-            <button class="link-button" type="button" (click)="deleteUnit(unit)">削除</button>
-          </div>
-        }
+        <div class="unit-grid">
+          @for (unit of unitsForGroup(group.id); track unit.id) {
+            <div class="unit-row">
+              <span class="unit-cover-wrap">
+                @if (unit.coverImageUrl) {
+                  <img class="unit-cover" [src]="unit.coverImageUrl" alt="" loading="lazy" />
+                } @else {
+                  <span class="unit-cover-placeholder">?</span>
+                }
+              </span>
+              <label class="unit-checkbox">
+                <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
+                <span>{{ w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話' }}</span>
+              </label>
+              <div class="unit-actions">
+                <span class="view-count">{{ unit.viewCount }}回</span>
+                <button class="link-button" type="button" (click)="incrementViewCount(unit)">
+                  +1周
+                </button>
+                <button class="link-button" type="button" (click)="deleteUnit(unit)">削除</button>
+              </div>
+            </div>
+          }
+        </div>
 
         <div class="add-unit-row">
           <input
