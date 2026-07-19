@@ -59,7 +59,9 @@ export class MediaStoreService {
   saveWork(work: Work): void {
     const existing = this._works();
     const idx = existing.findIndex((w) => w.id === work.id);
-    this.persistWorks(idx >= 0 ? existing.map((w) => (w.id === work.id ? work : w)) : [work, ...existing]);
+    this.persistWorks(
+      idx >= 0 ? existing.map((w) => (w.id === work.id ? work : w)) : [work, ...existing],
+    );
   }
 
   saveGroup(group: Group): void {
@@ -73,15 +75,15 @@ export class MediaStoreService {
   saveUnit(unit: Unit): void {
     const existing = this._units();
     const idx = existing.findIndex((u) => u.id === unit.id);
-    this.persistUnits(idx >= 0 ? existing.map((u) => (u.id === unit.id ? unit : u)) : [unit, ...existing]);
+    this.persistUnits(
+      idx >= 0 ? existing.map((u) => (u.id === unit.id ? unit : u)) : [unit, ...existing],
+    );
   }
 
   // Workの削除は配下のGroup・Unitも連動してtombstone化する（カスケード）。
   deleteWork(id: string): void {
     this.persistWorks(this._works().map((w) => (w.id === id ? { ...w, deleted: true } : w)));
-    this.persistGroups(
-      this._groups().map((g) => (g.workId === id ? { ...g, deleted: true } : g)),
-    );
+    this.persistGroups(this._groups().map((g) => (g.workId === id ? { ...g, deleted: true } : g)));
     this.persistUnits(this._units().map((u) => (u.workId === id ? { ...u, deleted: true } : u)));
   }
 

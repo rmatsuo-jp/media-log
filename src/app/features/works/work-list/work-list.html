@@ -26,7 +26,11 @@
     <div class="form-group add-form">
       <label class="label">作品を追加</label>
       <div class="add-row">
-        <select class="select" [value]="newMediaType()" (change)="newMediaType.set($any($event.target).value)">
+        <select
+          class="select"
+          [value]="newMediaType()"
+          (change)="newMediaType.set($any($event.target).value)"
+        >
           <option value="manga">マンガ</option>
           <option value="anime">アニメ</option>
         </select>

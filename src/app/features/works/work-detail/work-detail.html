@@ -35,11 +35,7 @@
         @for (unit of unitsForGroup(group.id); track unit.id) {
           <div class="unit-row">
             <label class="unit-checkbox">
-              <input
-                type="checkbox"
-                [checked]="unit.viewed"
-                (change)="toggleUnitViewed(unit)"
-              />
+              <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
               <span>第{{ unit.number }}話・巻</span>
             </label>
             <span class="view-count">{{ unit.viewCount }}回</span>

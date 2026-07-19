@@ -47,7 +47,11 @@ export class MediaFirestoreSyncService {
   private _syncError = signal<string | null>(null);
   readonly syncError = this._syncError.asReadonly();
 
-  private pendingPushIds = { works: new Set<string>(), groups: new Set<string>(), units: new Set<string>() };
+  private pendingPushIds = {
+    works: new Set<string>(),
+    groups: new Set<string>(),
+    units: new Set<string>(),
+  };
 
   constructor() {
     effect(() => {
@@ -57,7 +61,9 @@ export class MediaFirestoreSyncService {
           .then(() => this._syncError.set(null))
           .catch((err) => {
             console.error('[MediaFirestoreSyncService] クラウド同期に失敗:', err);
-            this._syncError.set('閲覧記録のクラウド同期に失敗しました。ローカルには保存されています。');
+            this._syncError.set(
+              '閲覧記録のクラウド同期に失敗しました。ローカルには保存されています。',
+            );
           });
       }
     });
@@ -90,9 +96,7 @@ export class MediaFirestoreSyncService {
     const uid = this.auth.user()?.uid;
     if (!uid || works.length === 0) return;
     Promise.all(
-      works.map((w) =>
-        setDoc(this.docRef(uid, 'works', w.id), stripUndefinedShallow({ ...w })),
-      ),
+      works.map((w) => setDoc(this.docRef(uid, 'works', w.id), stripUndefinedShallow({ ...w }))),
     )
       .then(() => {
         for (const w of works) this.pendingPushIds.works.delete(w.id);
@@ -109,9 +113,7 @@ export class MediaFirestoreSyncService {
     const uid = this.auth.user()?.uid;
     if (!uid || groups.length === 0) return;
     Promise.all(
-      groups.map((g) =>
-        setDoc(this.docRef(uid, 'groups', g.id), stripUndefinedShallow({ ...g })),
-      ),
+      groups.map((g) => setDoc(this.docRef(uid, 'groups', g.id), stripUndefinedShallow({ ...g }))),
     )
       .then(() => {
         for (const g of groups) this.pendingPushIds.groups.delete(g.id);
@@ -128,9 +130,7 @@ export class MediaFirestoreSyncService {
     const uid = this.auth.user()?.uid;
     if (!uid || units.length === 0) return;
     Promise.all(
-      units.map((u) =>
-        setDoc(this.docRef(uid, 'units', u.id), stripUndefinedShallow({ ...u })),
-      ),
+      units.map((u) => setDoc(this.docRef(uid, 'units', u.id), stripUndefinedShallow({ ...u }))),
     )
       .then(() => {
         for (const u of units) this.pendingPushIds.units.delete(u.id);
@@ -174,7 +174,9 @@ export class MediaFirestoreSyncService {
       return !c || Boolean(c.deleted) !== Boolean(v.deleted);
     });
     await Promise.all(
-      toPush.map((v) => setDoc(this.docRef(uid, col, v.id), stripUndefinedShallow(v as Record<string, unknown>))),
+      toPush.map((v) =>
+        setDoc(this.docRef(uid, col, v.id), stripUndefinedShallow(v as Record<string, unknown>)),
+      ),
     );
   }
 }

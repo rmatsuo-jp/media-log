@@ -74,7 +74,14 @@ export class MediaRepositoryService {
   // ── Unit ─────────────────────────────────────────────────────────
   createUnit(input: Pick<Unit, 'groupId' | 'workId' | 'number'>): Unit {
     const now = nowIso();
-    const unit: Unit = { id: newId(), viewed: false, viewCount: 0, createdAt: now, updatedAt: now, ...input };
+    const unit: Unit = {
+      id: newId(),
+      viewed: false,
+      viewCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      ...input,
+    };
     this.store.saveUnit(unit);
     this.sync.pushUnits([unit]);
     return unit;
