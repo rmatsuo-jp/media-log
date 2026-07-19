@@ -1,10 +1,11 @@
 /**
  * @file 作品一覧ページ。作品追加フォーム（features/works/add-work-form）と作品グリッドを表示する。
  * 読みたいリストは独立ページ（features/works/wishlist）に分離済み。
+ * 上部のマンガ/アニメ/すべてトグルで一覧をmediaType絞り込み（非永続のローカルsignal）。
  * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
  * 行えるメニュー（Modal+CoverTile）を開く。
  */
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MediaType, Work } from '@core/models/media.model';
 import { Badge } from '@shared/ui/badge/badge';
@@ -26,6 +27,15 @@ export class WorkList {
   mediaTypeLabel(type: MediaType): string {
     return type === 'manga' ? 'マンガ' : 'アニメ';
   }
+
+  // ── マンガ/アニメ絞り込み（非永続） ──
+  protected mediaTypeFilter = signal<MediaType | 'all'>('all');
+
+  protected filteredWorks = computed(() => {
+    const filter = this.mediaTypeFilter();
+    const works = this.state.allWorksSorted();
+    return filter === 'all' ? works : works.filter((work) => work.mediaType === filter);
+  });
 
   protected coverPickerWork = signal<Work | null>(null);
 

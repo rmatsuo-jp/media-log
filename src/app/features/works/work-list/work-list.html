@@ -1,5 +1,5 @@
 <!-- @file 作品一覧テンプレート。上部に共通の追加フォーム（app-add-work-form）、
-     下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
+     マンガ/アニメ/すべての絞り込みトグル、下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
      読みたいリストは独立ページ（wishlist）に分離済み。
      作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
 <div class="page">
@@ -7,11 +7,38 @@
 
   <app-add-work-form />
 
-  @if (state.allWorksSorted().length === 0) {
+  <div class="view-toggle">
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'all'"
+      (click)="mediaTypeFilter.set('all')"
+    >
+      すべて
+    </button>
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'manga'"
+      (click)="mediaTypeFilter.set('manga')"
+    >
+      マンガ
+    </button>
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'anime'"
+      (click)="mediaTypeFilter.set('anime')"
+    >
+      アニメ
+    </button>
+  </div>
+
+  @if (filteredWorks().length === 0) {
     <p class="hint">まだ作品が登録されていません。</p>
   }
   <div class="work-grid">
-    @for (work of state.allWorksSorted(); track work.id) {
+    @for (work of filteredWorks(); track work.id) {
       <a class="work-card" [routerLink]="['/works', work.id]">
         <span
           class="work-cover-wrap"

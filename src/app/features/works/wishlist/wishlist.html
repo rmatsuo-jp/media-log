@@ -1,16 +1,43 @@
 <!-- @file 読みたいリストテンプレート。上部に共通の追加フォーム（wantToConsume=true）、
-     下部にwantToConsumeEntries()を画像優先のグリッドで並べる
+     マンガ/アニメ/すべての絞り込みトグル、下部にfilteredEntries()を画像優先のグリッドで並べる
      （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
 <div class="page">
   <h1 class="page-title">読みたい</h1>
 
   <app-add-work-form [wantToConsume]="true" />
 
-  @if (state.wantToConsumeEntries().length === 0) {
+  <div class="view-toggle">
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'all'"
+      (click)="mediaTypeFilter.set('all')"
+    >
+      すべて
+    </button>
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'manga'"
+      (click)="mediaTypeFilter.set('manga')"
+    >
+      マンガ
+    </button>
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="mediaTypeFilter() === 'anime'"
+      (click)="mediaTypeFilter.set('anime')"
+    >
+      アニメ
+    </button>
+  </div>
+
+  @if (filteredEntries().length === 0) {
     <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
   }
   <div class="work-grid">
-    @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
+    @for (entry of filteredEntries(); track entry.work.id) {
       <a class="work-card" [routerLink]="['/works', entry.work.id]">
         <span class="work-cover-wrap">
           @if (entry.work.coverImageUrl) {
