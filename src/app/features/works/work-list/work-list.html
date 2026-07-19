@@ -1,40 +1,11 @@
-<!-- @file 作品一覧テンプレート。上部に追加導線（外部検索パネルを常時インライン表示、
-     手動入力はトグルで展開するオプション）、下部に作品カードを画像優先のグリッドで並べる
-     （画像下部にタイトル）。読みたいリストは独立ページ（wishlist）に分離済み。
+<!-- @file 作品一覧テンプレート。上部に共通の追加フォーム（app-add-work-form）、
+     下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
+     読みたいリストは独立ページ（wishlist）に分離済み。
      作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
 
-  <div class="form-group add-form">
-    <label class="label">作品を追加</label>
-    <app-work-import />
-
-    <button class="btn-secondary" type="button" (click)="toggleManual()">
-      手動で追加
-    </button>
-
-    @if (manualOpen()) {
-      <div class="add-row">
-        <select
-          class="select"
-          [value]="newMediaType()"
-          (change)="newMediaType.set($any($event.target).value)"
-        >
-          <option value="manga">マンガ</option>
-          <option value="anime">アニメ</option>
-        </select>
-        <input
-          class="text-input"
-          type="text"
-          placeholder="タイトル"
-          [value]="newTitle()"
-          (input)="newTitle.set($any($event.target).value)"
-          (keydown.enter)="addWork()"
-        />
-        <button class="btn-primary" type="button" (click)="addWork()">追加</button>
-      </div>
-    }
-  </div>
+  <app-add-work-form />
 
   @if (state.allWorksSorted().length === 0) {
     <p class="hint">まだ作品が登録されていません。</p>

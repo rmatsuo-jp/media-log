@@ -1,7 +1,10 @@
-<!-- @file 読みたいリストテンプレート。wantToConsumeEntries()を画像優先のグリッドで並べる
+<!-- @file 読みたいリストテンプレート。上部に共通の追加フォーム（wantToConsume=true）、
+     下部にwantToConsumeEntries()を画像優先のグリッドで並べる
      （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
 <div class="page">
   <h1 class="page-title">読みたい</h1>
+
+  <app-add-work-form [wantToConsume]="true" />
 
   @if (state.wantToConsumeEntries().length === 0) {
     <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
