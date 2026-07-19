@@ -35,6 +35,7 @@ describe('AnilistApiService', () => {
           media: [
             {
               id: 30013,
+              type: 'MANGA',
               title: { romaji: 'ONE PIECE', english: null, native: null },
               coverImage: { large: 'https://example.com/cover.jpg' },
               format: 'MANGA',
@@ -63,7 +64,7 @@ describe('AnilistApiService', () => {
     expect(req.request.body.variables).toEqual({
       search: 'ワンピース',
       type: 'MANGA',
-      isAdult: null,
+      isAdult: undefined,
     });
     req.flush({ data: { Page: { media: [] } } });
   });
