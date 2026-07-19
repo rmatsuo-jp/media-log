@@ -1,7 +1,8 @@
 <!-- @file 外部検索インラインパネル（作品一覧タブ内に常時表示）。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。
      numberFilterで整数巻のみ/非整数巻のみ/すべて表示を切り替え可能。
      mediaTypeは'both'も選択可能で、その場合は各タイルに種別バッジを表示する。
-     titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。 -->
+     titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。
+     詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。 -->
 <div class="work-import">
   @if (step() === 'search') {
     <div class="view-toggle">
@@ -48,6 +49,18 @@
         }
       </button>
     </div>
+
+    <details class="advanced-settings">
+      <summary>詳細設定</summary>
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [checked]="includeAdult()"
+          (change)="setIncludeAdult($any($event.target).checked)"
+        />
+        成人向け作品を含める
+      </label>
+    </details>
 
     @if (searchError()) {
       <p class="hint error-text">{{ searchError() }}</p>

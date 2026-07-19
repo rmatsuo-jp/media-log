@@ -1,7 +1,10 @@
 /**
  * @file MangaDex API（https://api.mangadex.org）のクライアント。APIキー不要。
  * マンガのタイトル検索と、巻(volume)ごとの表紙画像取得を提供する。
- * AniListとMangaDexにID相互紐付けはないため、作品タイトル文字列で別途検索する。
+ * 作品検索はAniListで行うため、作品タイトル文字列で別途MangaDexを検索する。ただしMangaDexの
+ * attributes.linksにはAniListメディアIDが`al`キーで入っていることがあり、searchManga結果の
+ * anilistIdとして返す。呼び出し側（work-import.ts）はこれを選択中のAniList作品のexternalIdと
+ * 突き合わせて同一作品を確実に特定する（タイトル文字列の曖昧一致による誤爆を防ぐ）。
  * MangaDexは1巻に複数のcover_art（重版・デジタル版など）を持つため、getVolumesは巻番号で
  * 重複排除し、代表URLをcoverImageUrlに、全候補をvariantCoverImageUrlsに格納する。
  */
@@ -22,6 +25,7 @@ interface MangaDexRelationship {
 interface MangaDexMangaAttributes {
   title: Record<string, string>;
   altTitles?: Record<string, string>[];
+  links?: Record<string, string>;
 }
 
 interface MangaDexMangaEntry {
@@ -76,6 +80,7 @@ export class MangadexApiService {
             externalId: entry.id,
             title: pickTitle(entry.attributes),
             coverImageUrl: fileName ? coverUrl(entry.id, fileName) : undefined,
+            anilistId: entry.attributes.links?.['al'],
           };
         }),
       ),

@@ -24,7 +24,7 @@ describe('AnilistApiService', () => {
     service.searchWorks('ワンピース', 'manga').subscribe((r) => (result = r));
 
     const req = httpMock.expectOne('https://graphql.anilist.co');
-    expect(req.request.body.variables).toEqual({ search: 'ワンピース', type: 'MANGA' });
+    expect(req.request.body.variables).toEqual({ search: 'ワンピース', type: 'MANGA', isAdult: false });
     req.flush({
       data: {
         Page: {
@@ -50,6 +50,14 @@ describe('AnilistApiService', () => {
         format: 'MANGA',
       },
     ]);
+  });
+
+  it('includeAdultがtrueの場合はisAdultフィルタなしで検索する', () => {
+    service.searchWorks('ワンピース', 'manga', true).subscribe();
+
+    const req = httpMock.expectOne('https://graphql.anilist.co');
+    expect(req.request.body.variables).toEqual({ search: 'ワンピース', type: 'MANGA', isAdult: null });
+    req.flush({ data: { Page: { media: [] } } });
   });
 
   it('streamingEpisodesがない場合は空配列を返す', () => {

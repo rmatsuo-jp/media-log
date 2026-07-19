@@ -3,6 +3,7 @@
  * マンガ・アニメ横断の作品検索とシリーズ表紙、アニメの話数サムネイル（取得できる作品のみ）を提供する。
  * searchWorksはmediaTypeに'both'を渡すと種別フィルタなしで検索し、結果ごとの実際の種別(m.type)を
  * 反映する。日本語タイトル(titleNative)・人気度(popularity)・スコア(averageScore)も併せて返す。
+ * includeAdultがfalseの場合は成人向け作品(isAdult)を除外する。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -50,12 +51,16 @@ function pickTitle(title: AniListTitle): string {
 export class AnilistApiService {
   private http = inject(HttpClient);
 
-  searchWorks(query: string, mediaType: MediaType | 'both'): Observable<ExternalWorkSearchResult[]> {
+  searchWorks(
+    query: string,
+    mediaType: MediaType | 'both',
+    includeAdult = false,
+  ): Observable<ExternalWorkSearchResult[]> {
     const anilistType = mediaType === 'both' ? null : mediaType === 'manga' ? 'MANGA' : 'ANIME';
     const graphqlQuery = `
-      query ($search: String, $type: MediaType) {
+      query ($search: String, $type: MediaType, $isAdult: Boolean) {
         Page(page: 1, perPage: 20) {
-          media(search: $search, type: $type) {
+          media(search: $search, type: $type, isAdult: $isAdult) {
             id
             type
             title { romaji english native }
@@ -70,7 +75,7 @@ export class AnilistApiService {
     return this.http
       .post<AniListSearchResponse>(ANILIST_ENDPOINT, {
         query: graphqlQuery,
-        variables: { search: query, type: anilistType },
+        variables: { search: query, type: anilistType, isAdult: includeAdult ? null : false },
       })
       .pipe(
         map((res) =>

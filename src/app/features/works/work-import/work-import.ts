@@ -5,9 +5,14 @@
  * variantIndexByNumber signalでユーザーが手動で切り替えられるようにする。
  * 1.5巻等の非整数巻は特別版/非売品であることが多いため、numberFilter signalで
  * 「整数のみ／非整数のみ／すべて」の3択表示に絞り込める。
+ * マンガの巻取得はMangaDexのタイトル検索結果をそのまま先頭採用せず、attributes.links.alで
+ * 返るAniListメディアIDと選択中作品のexternalIdを突き合わせ、一致した候補のみ採用する
+ * （同名・類似タイトル作品の巻データ誤取り込みを防ぐ）。一致がなければ巻候補は0件になる。
  * mediaType signalは'both'を許容し、AniListに種別フィルタなしで検索させる（種別は結果ごとに判定）。
  * titleLang signalでタイトル表示をローマ字/英語⇔日本語(titleNative)に切り替え、
  * sortBy signalで検索結果を人気度/スコア順に並び替えられる。
+ * includeAdult signalは詳細設定で成人向け作品を検索結果に含めるかどうかを切り替え、
+ * WorkImportSettingsServiceでlocalStorageに永続化する（デフォルトfalse=除外）。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
@@ -19,6 +24,7 @@ import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
 import { WorksStateService } from '../works-state.service';
+import { WorkImportSettingsService } from './work-import-settings.service';
 
 type Step = 'search' | 'candidates';
 type NumberFilter = 'all' | 'integer' | 'fractional';
@@ -37,6 +43,7 @@ export class WorkImport {
   private anilist = inject(AnilistApiService);
   private mangadex = inject(MangadexApiService);
   private state = inject(WorksStateService);
+  private importSettings = inject(WorkImportSettingsService);
 
   imported = output<Work>();
 
@@ -48,6 +55,7 @@ export class WorkImport {
   protected searchResults = signal<ExternalWorkSearchResult[]>([]);
   protected titleLang = signal<TitleLang>('original');
   protected sortBy = signal<SortBy>('relevance');
+  protected includeAdult = signal(this.importSettings.getSettings().includeAdult);
 
   protected selectedWork = signal<ExternalWorkSearchResult | null>(null);
   protected loadingCandidates = signal(false);
@@ -83,6 +91,11 @@ export class WorkImport {
     this.sortBy.set(sortBy);
   }
 
+  setIncludeAdult(includeAdult: boolean): void {
+    this.includeAdult.set(includeAdult);
+    this.importSettings.saveSettings({ includeAdult });
+  }
+
   displayTitle(result: ExternalWorkSearchResult): string {
     return this.titleLang() === 'ja' ? (result.titleNative ?? result.title) : result.title;
   }
@@ -92,7 +105,7 @@ export class WorkImport {
     if (!query) return;
     this.searching.set(true);
     this.searchError.set(null);
-    this.anilist.searchWorks(query, this.mediaType()).subscribe({
+    this.anilist.searchWorks(query, this.mediaType(), this.includeAdult()).subscribe({
       next: (results) => {
         this.searchResults.set(results);
         this.searching.set(false);
@@ -116,13 +129,12 @@ export class WorkImport {
     const candidates$ =
       result.mediaType === 'anime'
         ? this.anilist.getAnimeEpisodes(result.externalId)
-        : this.mangadex
-            .searchManga(result.title)
-            .pipe(
-              switchMap((matches) =>
-                matches.length > 0 ? this.mangadex.getVolumes(matches[0].externalId) : of([]),
-              ),
-            );
+        : this.mangadex.searchManga(result.title).pipe(
+            switchMap((matches) => {
+              const match = matches.find((m) => m.anilistId === result.externalId);
+              return match ? this.mangadex.getVolumes(match.externalId) : of([]);
+            }),
+          );
 
     candidates$.subscribe({
       next: (candidates) => {

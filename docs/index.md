@@ -16,6 +16,7 @@
 | [CHANGELOG.md](../CHANGELOG.md)                      | semantic-releaseによる自動生成のリリースノート                                                 |
 | [setup.md](setup.md)                                 | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
 | [deploy-to-android-pwa.md](deploy-to-android-pwa.md) | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順                                   |
+| [external-media-integration.md](external-media-integration.md) | 作品取り込みが使う外部API（AniList/MangaDex）の役割分担と依存関係                              |
 
 ## 法務
 

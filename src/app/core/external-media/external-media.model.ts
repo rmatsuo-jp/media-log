@@ -16,6 +16,8 @@ export interface ExternalWorkSearchResult {
   format?: string;
   averageScore?: number;
   popularity?: number;
+  /** MangaDex検索結果のみ: attributes.linksに含まれるAniListメディアID。作品とのID照合に使う。 */
+  anilistId?: string;
 }
 
 export interface ExternalUnitCandidate {
