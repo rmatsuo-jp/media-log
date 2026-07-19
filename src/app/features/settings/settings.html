@@ -1,4 +1,4 @@
-<!-- @file Settings ページテンプレート。セクション順はテーマ → 法的情報 → GitHubリポジトリ → アカウント（Google SSO 同期）。 -->
+<!-- @file Settings ページテンプレート。セクション順はテーマ → 法的情報 → GitHubリポジトリ → バージョン情報 → アカウント（Google SSO 同期）。 -->
 <div class="page">
   <h1 class="page-title">設定</h1>
 
@@ -28,9 +28,9 @@
   <div class="form-group">
     <label class="label">法的情報</label>
     <p class="hint">
-      <a routerLink="/legal/privacy">Privacy Policy</a> ・
-      <a routerLink="/legal/terms">Terms of Service</a> ・
-      <a routerLink="/legal/disclaimer">Disclaimer</a>
+      <a routerLink="/legal/privacy">プライバシーポリシー</a> ・
+      <a routerLink="/legal/terms">利用規約</a> ・
+      <a routerLink="/legal/disclaimer">免責事項</a>
     </p>
   </div>
 
@@ -40,6 +40,25 @@
     <p class="hint">
       <a [href]="githubUrl" target="_blank" rel="noopener">{{ githubUrl }}</a>
     </p>
+  </div>
+
+  <!-- ── バージョン情報 ─────────── -->
+  <div class="form-group">
+    <label class="label">バージョン情報</label>
+    <p class="hint">v{{ appVersion }}（{{ releaseDate }}）</p>
+    <details class="release-notes">
+      <summary>リリースノートを表示</summary>
+      @for (release of releaseNotes(); track release.version) {
+        <div class="release-note">
+          <p class="release-note-title">v{{ release.version }}（{{ release.date }}）</p>
+          <ul>
+            @for (item of release.items; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </details>
   </div>
 
   <app-account-panel />
