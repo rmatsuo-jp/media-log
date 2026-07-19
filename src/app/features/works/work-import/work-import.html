@@ -1,0 +1,99 @@
+<!-- @file 外部検索モーダル。検索→作品タイル選択→巻/話数タイル選択→取り込みの3ステップ。 -->
+<app-modal (closed)="close()">
+  <h2 class="page-title">外部検索から追加</h2>
+
+  @if (step() === 'search') {
+    <div class="view-toggle">
+      <button
+        class="theme-btn"
+        [class.active]="mediaType() === 'manga'"
+        type="button"
+        (click)="setMediaType('manga')"
+      >
+        マンガ
+      </button>
+      <button
+        class="theme-btn"
+        [class.active]="mediaType() === 'anime'"
+        type="button"
+        (click)="setMediaType('anime')"
+      >
+        アニメ
+      </button>
+    </div>
+
+    <div class="add-row">
+      <input
+        class="text-input"
+        type="text"
+        placeholder="作品タイトルで検索"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+        (keydown.enter)="search()"
+      />
+      <button class="btn-primary" type="button" (click)="search()" [disabled]="searching()">
+        @if (searching()) {
+          <app-spinner />
+        } @else {
+          検索
+        }
+      </button>
+    </div>
+
+    @if (searchError()) {
+      <p class="hint error-text">{{ searchError() }}</p>
+    }
+
+    <div class="cover-grid">
+      @for (result of searchResults(); track result.externalId) {
+        <app-cover-tile
+          [imageUrl]="result.coverImageUrl"
+          [label]="result.title"
+          (tileClick)="selectWork(result)"
+        />
+      }
+    </div>
+    @if (!searching() && searchResults().length === 0) {
+      <p class="hint">検索語を入力してください。</p>
+    }
+  } @else if (selectedWork(); as work) {
+    <button class="link-button" type="button" (click)="backToSearch()">← 検索に戻る</button>
+    <h3>{{ work.title }}</h3>
+
+    <div class="form-group">
+      <label class="label">グループ名</label>
+      <input
+        class="text-input"
+        type="text"
+        [value]="groupTitle()"
+        (input)="groupTitle.set($any($event.target).value)"
+      />
+    </div>
+
+    @if (loadingCandidates()) {
+      <app-spinner />
+    } @else if (candidates().length === 0) {
+      <p class="hint">
+        {{ work.mediaType === 'manga' ? '巻情報' : '話数サムネイル' }}
+        が見つかりませんでした。作品情報のみ取り込みます。
+      </p>
+    } @else {
+      <p class="hint">取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。</p>
+      <div class="cover-grid">
+        @for (candidate of candidates(); track candidate.number) {
+          <app-cover-tile
+            [imageUrl]="candidate.coverImageUrl"
+            [label]="candidate.title ?? (work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話')"
+            [selected]="isSelected(candidate.number)"
+            size="sm"
+            (tileClick)="toggleCandidate(candidate.number)"
+          />
+        }
+      </div>
+    }
+
+    <div class="work-actions">
+      <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
+    </div>
+  }
+</app-modal>

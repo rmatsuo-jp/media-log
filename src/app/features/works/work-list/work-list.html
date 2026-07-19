@@ -44,13 +44,23 @@
         />
         <button class="btn-primary" type="button" (click)="addWork()">追加</button>
       </div>
+      <button class="btn-secondary" type="button" (click)="openImport()">
+        外部検索から追加
+      </button>
     </div>
+
+    @if (importOpen()) {
+      <app-work-import (closed)="closeImport()" (imported)="closeImport()" />
+    }
 
     @if (state.allWorksSorted().length === 0) {
       <p class="hint">まだ作品が登録されていません。</p>
     }
     @for (work of state.allWorksSorted(); track work.id) {
       <a class="work-card" [routerLink]="['/works', work.id]">
+        @if (work.coverImageUrl) {
+          <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
+        }
         <app-badge [variant]="work.mediaType === 'manga' ? 'default' : 'success'">{{
           mediaTypeLabel(work.mediaType)
         }}</app-badge>
@@ -66,6 +76,14 @@
     }
     @for (entry of state.wantToConsumeEntries(); track entry.work.id) {
       <a class="work-card" [routerLink]="['/works', entry.work.id]">
+        @if (entry.work.coverImageUrl) {
+          <img
+            class="work-cover"
+            [src]="entry.work.coverImageUrl"
+            [alt]="entry.work.title"
+            loading="lazy"
+          />
+        }
         <app-badge [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'">{{
           mediaTypeLabel(entry.work.mediaType)
         }}</app-badge>

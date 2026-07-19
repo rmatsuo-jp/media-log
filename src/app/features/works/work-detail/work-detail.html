@@ -34,6 +34,9 @@
 
         @for (unit of unitsForGroup(group.id); track unit.id) {
           <div class="unit-row">
+            @if (unit.coverImageUrl) {
+              <img class="unit-cover" [src]="unit.coverImageUrl" alt="" loading="lazy" />
+            }
             <label class="unit-checkbox">
               <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
               <span>第{{ unit.number }}話・巻</span>

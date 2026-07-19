@@ -48,6 +48,14 @@
   cursor: pointer;
 }
 
+.unit-cover {
+  width: 2rem;
+  height: 2.75rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
 .view-count {
   font-size: 0.8125rem;
   color: var(--color-text-muted);

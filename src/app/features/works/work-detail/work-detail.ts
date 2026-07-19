@@ -1,6 +1,7 @@
 /**
  * @file 作品詳細ページ。Group→Unitの階層を表示し、既読トグル・周回カウント・
  * Group単位の「読みたい」フラグ・グループ/Unitの追加を行う。
+ * Unitに外部API由来のcoverImageUrlがあれば表紙サムネイルを表示する。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';

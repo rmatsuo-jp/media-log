@@ -2,10 +2,15 @@
  * @file works機能の状態・派生ロジックを集約するstate service。
  * MediaRepositoryServiceをinjectし、コンポーネントはこのサービス経由でのみ読み書きする
  * （CLAUDE.mdの「状態はfeature内の{feature}-state.serviceに集約する」パターン）。
+ * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
  */
 import { computed, Injectable, inject, signal } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
 import { MediaRepositoryService } from '@core/media/media-repository.service';
+import {
+  ExternalUnitCandidate,
+  ExternalWorkSearchResult,
+} from '@core/external-media/external-media.model';
 
 export type WorksViewMode = 'all' | 'want';
 
@@ -107,5 +112,40 @@ export class WorksStateService {
 
   deleteUnit(id: string): void {
     this.repo.deleteUnit(id);
+  }
+
+  // ── 外部API連携（AniList/MangaDex）からの取り込み ──────────────────
+  importWorkFromExternal(result: ExternalWorkSearchResult): Work {
+    return this.repo.createWork({
+      title: result.title,
+      mediaType: result.mediaType,
+      wantToConsume: false,
+      externalSource: result.externalSource,
+      externalId: result.externalId,
+      coverImageUrl: result.coverImageUrl,
+    });
+  }
+
+  importUnitsAsGroup(
+    workId: string,
+    groupTitle: string,
+    candidates: ExternalUnitCandidate[],
+  ): Group {
+    const order = this.groupsForWork(workId).length;
+    const group = this.repo.createGroup({
+      workId,
+      title: groupTitle,
+      order,
+      wantToConsume: false,
+    });
+    for (const candidate of candidates) {
+      this.repo.createUnit({
+        workId,
+        groupId: group.id,
+        number: candidate.number,
+        coverImageUrl: candidate.coverImageUrl,
+      });
+    }
+    return group;
   }
 }

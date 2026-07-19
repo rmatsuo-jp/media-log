@@ -1,0 +1,75 @@
+// ── 表紙イラストタイル。画像優先、未取得時はプレースホルダー ──
+.cover-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+
+  &.selected {
+    border-color: var(--color-primary);
+  }
+}
+
+.cover-image-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-border);
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.viewed-mark {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+}
+
+.cover-label {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cover-tile-sm {
+  .cover-label {
+    font-size: 0.7rem;
+  }
+}

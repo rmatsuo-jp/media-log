@@ -15,6 +15,18 @@
     flex: 1;
     min-width: 8rem;
   }
+
+  .btn-secondary {
+    margin-top: 0.5rem;
+  }
+}
+
+.work-cover {
+  width: 2.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
 .work-card {

@@ -1,0 +1,21 @@
+<button
+  type="button"
+  class="cover-tile"
+  [class.cover-tile-sm]="size() === 'sm'"
+  [class.selected]="selected()"
+  (click)="tileClick.emit()"
+>
+  <span class="cover-image-wrap">
+    @if (imageUrl()) {
+      <img class="cover-image" [src]="imageUrl()" [alt]="label()" loading="lazy" />
+    } @else {
+      <span class="cover-placeholder">{{ label() ? label().slice(0, 1) : '?' }}</span>
+    }
+    @if (viewed()) {
+      <span class="viewed-mark">済</span>
+    }
+  </span>
+  @if (label()) {
+    <span class="cover-label">{{ label() }}</span>
+  }
+</button>

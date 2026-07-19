@@ -27,7 +27,10 @@ export class MediaRepositoryService {
   readonly units = this.store.units;
 
   // ── Work ─────────────────────────────────────────────────────────
-  createWork(input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'>): Work {
+  createWork(
+    input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'> &
+      Partial<Pick<Work, 'externalSource' | 'externalId' | 'coverImageUrl'>>,
+  ): Work {
     const now = nowIso();
     const work: Work = { id: newId(), createdAt: now, updatedAt: now, ...input };
     this.store.saveWork(work);
@@ -50,7 +53,10 @@ export class MediaRepositoryService {
   }
 
   // ── Group ────────────────────────────────────────────────────────
-  createGroup(input: Pick<Group, 'workId' | 'order' | 'title' | 'wantToConsume'>): Group {
+  createGroup(
+    input: Pick<Group, 'workId' | 'order' | 'title' | 'wantToConsume'> &
+      Partial<Pick<Group, 'coverImageUrl'>>,
+  ): Group {
     const now = nowIso();
     const group: Group = { id: newId(), createdAt: now, updatedAt: now, ...input };
     this.store.saveGroup(group);
@@ -72,7 +78,9 @@ export class MediaRepositoryService {
   }
 
   // ── Unit ─────────────────────────────────────────────────────────
-  createUnit(input: Pick<Unit, 'groupId' | 'workId' | 'number'>): Unit {
+  createUnit(
+    input: Pick<Unit, 'groupId' | 'workId' | 'number'> & Partial<Pick<Unit, 'coverImageUrl'>>,
+  ): Unit {
     const now = nowIso();
     const unit: Unit = {
       id: newId(),
