@@ -1,11 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- 円形背景（テーマカラー） -->
-  <circle cx="256" cy="256" r="248" fill="#1976d2"/>
+  <!-- 背景（indigoグラデーション、マスカブル対応で図形は中央セーフゾーン内に収める） -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
 
-  <!-- 白抜き「A」 -->
-  <path d="M256 90 L372 410 L316 410 L291 338 L221 338 L196 410 L140 410 Z M256 182 L228 288 L284 288 Z" fill="#ffffff"/>
-
-  <!-- 添削チェックバッジ（右下） -->
-  <circle cx="392" cy="392" r="82" fill="#e53935" stroke="#1976d2" stroke-width="10"/>
-  <polyline points="360,393 384,418 428,364" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 開いた本のシルエット -->
+  <g transform="translate(256,262)">
+    <path d="M 0 -104 C -84 -132 -152 -128 -152 -128 L -152 112 C -152 112 -84 108 0 136 C 84 108 152 112 152 112 L 152 -128 C 152 -128 84 -132 0 -104 Z" fill="#ffffff"/>
+    <line x1="0" y1="-104" x2="0" y2="136" stroke="#4f46e5" stroke-width="6" opacity="0.6"/>
+    <!-- 再生ボタン（アニメを表す三角形） -->
+    <path d="M 40 -28 L 114 22 L 40 72 Z" fill="#4f46e5"/>
+  </g>
 </svg>

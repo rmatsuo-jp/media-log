@@ -17,3 +17,7 @@
 ## 確認待ち
 
 - **ブラウザでの実動作確認**: Phase 2実装時はブラウザ自動操作ツールが利用できず、実際のクリック操作によるE2E確認は未実施。ユーザーによる手動確認待ち。
+
+## 既知の問題
+
+（2026-07-19: CIのカバレッジ閾値未達は`media-firestore-sync.service.spec.ts`・`media-repository.service.spec.ts`追加、および`works-state.service.spec.ts`拡充により解消。全体でlines 88.23%/functions 82.44%/statements 85.61%/branches 70.13%まで改善。）
