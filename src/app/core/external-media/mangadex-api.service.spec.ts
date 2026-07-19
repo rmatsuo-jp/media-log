@@ -63,8 +63,40 @@ describe('MangadexApiService', () => {
     });
 
     expect(result).toEqual([
-      { number: 1, coverImageUrl: 'https://uploads.mangadex.org/covers/manga-1/v1.jpg.512.jpg' },
-      { number: 2, coverImageUrl: 'https://uploads.mangadex.org/covers/manga-1/v2.jpg.512.jpg' },
+      {
+        number: 1,
+        coverImageUrl: 'https://uploads.mangadex.org/covers/manga-1/v1.jpg.512.jpg',
+        variantCoverImageUrls: ['https://uploads.mangadex.org/covers/manga-1/v1.jpg.512.jpg'],
+      },
+      {
+        number: 2,
+        coverImageUrl: 'https://uploads.mangadex.org/covers/manga-1/v2.jpg.512.jpg',
+        variantCoverImageUrls: ['https://uploads.mangadex.org/covers/manga-1/v2.jpg.512.jpg'],
+      },
+    ]);
+  });
+
+  it('同一巻番号の複数カバーを1候補にまとめ、代替候補として保持する', () => {
+    let result: unknown;
+    service.getVolumes('manga-1').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne((r) => r.urlWithParams.startsWith('https://api.mangadex.org/cover?'));
+    req.flush({
+      data: [
+        { attributes: { volume: '1', fileName: 'v1-a.jpg' } },
+        { attributes: { volume: '1', fileName: 'v1-b.jpg' } },
+      ],
+    });
+
+    expect(result).toEqual([
+      {
+        number: 1,
+        coverImageUrl: 'https://uploads.mangadex.org/covers/manga-1/v1-a.jpg.512.jpg',
+        variantCoverImageUrls: [
+          'https://uploads.mangadex.org/covers/manga-1/v1-a.jpg.512.jpg',
+          'https://uploads.mangadex.org/covers/manga-1/v1-b.jpg.512.jpg',
+        ],
+      },
     ]);
   });
 });

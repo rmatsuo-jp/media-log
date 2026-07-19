@@ -18,4 +18,6 @@ export interface ExternalUnitCandidate {
   number: number;
   title?: string;
   coverImageUrl?: string;
+  /** 同一巻の代替表紙候補（自身のcoverImageUrlも含む）。2件以上あれば手動切り替えが可能。 */
+  variantCoverImageUrls?: string[];
 }

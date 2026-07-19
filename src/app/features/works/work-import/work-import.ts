@@ -1,6 +1,8 @@
 /**
  * @file 外部API（AniList/MangaDex）から作品を検索し、巻/話数の表紙イラストを見ながら取り込むインラインパネル。
  * ①検索→タイル選択 ②巻/話数候補選択 ③取り込み、の3ステップ。作品一覧タブ内に常時表示する（モーダルは使わない）。
+ * 同一巻に複数の表紙候補（variantCoverImageUrls）がある場合、自動で先頭を表示しつつ
+ * variantIndexByNumber signalでユーザーが手動で切り替えられるようにする。
  */
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
@@ -40,6 +42,7 @@ export class WorkImport {
   protected candidates = signal<ExternalUnitCandidate[]>([]);
   protected selectedNumbers = signal<Set<number>>(new Set());
   protected groupTitle = signal('');
+  protected variantIndexByNumber = signal<Map<number, number>>(new Map());
 
   setMediaType(type: MediaType): void {
     this.mediaType.set(type);
@@ -68,6 +71,7 @@ export class WorkImport {
     this.groupTitle.set(result.mediaType === 'manga' ? '取り込んだ巻' : '取り込んだ話数');
     this.candidates.set([]);
     this.selectedNumbers.set(new Set());
+    this.variantIndexByNumber.set(new Map());
     this.loadingCandidates.set(true);
 
     const candidates$ =
@@ -112,11 +116,31 @@ export class WorkImport {
     });
   }
 
+  coverUrlFor(candidate: ExternalUnitCandidate): string | undefined {
+    const variants = candidate.variantCoverImageUrls;
+    if (!variants || variants.length === 0) return candidate.coverImageUrl;
+    const index = this.variantIndexByNumber().get(candidate.number) ?? 0;
+    return variants[index] ?? candidate.coverImageUrl;
+  }
+
+  cycleVariant(candidate: ExternalUnitCandidate): void {
+    const variants = candidate.variantCoverImageUrls;
+    if (!variants || variants.length < 2) return;
+    this.variantIndexByNumber.update((map) => {
+      const next = new Map(map);
+      const current = next.get(candidate.number) ?? 0;
+      next.set(candidate.number, (current + 1) % variants.length);
+      return next;
+    });
+  }
+
   confirmImport(): void {
     const result = this.selectedWork();
     if (!result) return;
     const work = this.state.importWorkFromExternal(result);
-    const chosen = this.candidates().filter((c) => this.selectedNumbers().has(c.number));
+    const chosen = this.candidates()
+      .filter((c) => this.selectedNumbers().has(c.number))
+      .map((c) => ({ ...c, coverImageUrl: this.coverUrlFor(c) }));
     if (chosen.length > 0) {
       this.state.importUnitsAsGroup(work.id, this.groupTitle().trim() || '取り込み', chosen);
     }

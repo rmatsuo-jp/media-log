@@ -79,13 +79,25 @@
       <p class="hint">取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。</p>
       <div class="cover-grid">
         @for (candidate of candidates(); track candidate.number) {
-          <app-cover-tile
-            [imageUrl]="candidate.coverImageUrl"
-            [label]="candidate.title ?? (work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話')"
-            [selected]="isSelected(candidate.number)"
-            size="sm"
-            (tileClick)="toggleCandidate(candidate.number)"
-          />
+          <div class="cover-tile-wrap">
+            <app-cover-tile
+              [imageUrl]="coverUrlFor(candidate)"
+              [label]="candidate.title ?? (work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話')"
+              [selected]="isSelected(candidate.number)"
+              size="sm"
+              (tileClick)="toggleCandidate(candidate.number)"
+            />
+            @if ((candidate.variantCoverImageUrls?.length ?? 0) > 1) {
+              <button
+                class="variant-switch-btn"
+                type="button"
+                title="他の表紙候補に切り替え"
+                (click)="cycleVariant(candidate); $event.stopPropagation()"
+              >
+                他の表紙
+              </button>
+            }
+          </div>
         }
       </div>
     }
