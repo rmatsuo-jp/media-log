@@ -3,6 +3,7 @@
  * MediaRepositoryServiceをinjectし、コンポーネントはこのサービス経由でのみ読み書きする
  * （CLAUDE.mdの「状態はfeature内の{feature}-state.serviceに集約する」パターン）。
  * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
+ * 作品タイトルは日本語（titleNative）を優先して保存する（アプリ全体で日本語表記を基本とする）。
  */
 import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
@@ -113,7 +114,7 @@ export class WorksStateService {
   // ── 外部API連携（AniList/MangaDex）からの取り込み ──────────────────
   importWorkFromExternal(result: ExternalWorkSearchResult): Work {
     return this.repo.createWork({
-      title: result.title,
+      title: result.titleNative ?? result.title,
       mediaType: result.mediaType,
       wantToConsume: false,
       externalSource: result.externalSource,

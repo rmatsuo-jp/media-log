@@ -10,6 +10,21 @@
   margin: var(--space-3) 0;
 }
 
+@media (min-width: 768px) {
+  .cover-grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1rem;
+  }
+}
+
+// ── 検索結果の前へ/次へページング ──
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
 // ── 同一巻の代替表紙切り替えボタンをタイルに重ねて表示 ──
 .cover-tile-wrap {
   position: relative;

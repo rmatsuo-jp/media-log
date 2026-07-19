@@ -9,8 +9,10 @@
  * 返るAniListメディアIDと選択中作品のexternalIdを突き合わせ、一致した候補のみ採用する
  * （同名・類似タイトル作品の巻データ誤取り込みを防ぐ）。一致がなければ巻候補は0件になる。
  * mediaType signalは'both'を許容し、AniListに種別フィルタなしで検索させる（種別は結果ごとに判定）。
- * titleLang signalでタイトル表示をローマ字/英語⇔日本語(titleNative)に切り替え、
- * sortBy signalで検索結果を人気度/スコア順に並び替えられる。
+ * titleLang signalでタイトル表示をローマ字/英語⇔日本語(titleNative)に切り替え（デフォルト日本語）、
+ * sortBy signalで検索結果を人気度/スコア順に並び替えられる（デフォルト人気度順）。
+ * 検索結果は10件ずつpage signalでクライアント側ページングし、前へ/次へボタンで切り替える
+ * （検索・並び替え変更時はpageを0に戻す）。
  * includeAdult signalは詳細設定で成人向け作品を検索結果に含めるかどうかを切り替え、
  * WorkImportSettingsServiceでlocalStorageに永続化する（デフォルトfalse=除外）。
  */
@@ -31,6 +33,8 @@ type NumberFilter = 'all' | 'integer' | 'fractional';
 type MediaTypeFilter = MediaType | 'both';
 type TitleLang = 'original' | 'ja';
 type SortBy = 'relevance' | 'popularity' | 'score';
+
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-work-import',
@@ -53,8 +57,9 @@ export class WorkImport {
   protected searching = signal(false);
   protected searchError = signal<string | null>(null);
   protected searchResults = signal<ExternalWorkSearchResult[]>([]);
-  protected titleLang = signal<TitleLang>('original');
-  protected sortBy = signal<SortBy>('relevance');
+  protected titleLang = signal<TitleLang>('ja');
+  protected sortBy = signal<SortBy>('popularity');
+  protected page = signal(0);
   protected includeAdult = signal(this.importSettings.getSettings().includeAdult);
 
   protected selectedWork = signal<ExternalWorkSearchResult | null>(null);
@@ -79,6 +84,13 @@ export class WorkImport {
     return [...this.searchResults()].sort((a, b) => (b[key] ?? -1) - (a[key] ?? -1));
   });
 
+  protected pagedResults = computed(() => {
+    const start = this.page() * PAGE_SIZE;
+    return this.sortedResults().slice(start, start + PAGE_SIZE);
+  });
+
+  protected hasNextPage = computed(() => (this.page() + 1) * PAGE_SIZE < this.sortedResults().length);
+
   setMediaType(type: MediaTypeFilter): void {
     this.mediaType.set(type);
   }
@@ -89,6 +101,15 @@ export class WorkImport {
 
   setSortBy(sortBy: SortBy): void {
     this.sortBy.set(sortBy);
+    this.page.set(0);
+  }
+
+  nextPage(): void {
+    if (this.hasNextPage()) this.page.update((p) => p + 1);
+  }
+
+  prevPage(): void {
+    this.page.update((p) => Math.max(0, p - 1));
   }
 
   setIncludeAdult(includeAdult: boolean): void {
@@ -108,6 +129,7 @@ export class WorkImport {
     this.anilist.searchWorks(query, this.mediaType(), this.includeAdult()).subscribe({
       next: (results) => {
         this.searchResults.set(results);
+        this.page.set(0);
         this.searching.set(false);
       },
       error: () => {
@@ -215,5 +237,6 @@ export class WorkImport {
     this.selectedWork.set(null);
     this.query.set('');
     this.searchResults.set([]);
+    this.page.set(0);
   }
 }

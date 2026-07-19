@@ -2,7 +2,8 @@
      numberFilterで整数巻のみ/非整数巻のみ/すべて表示を切り替え可能。
      mediaTypeは'both'も選択可能で、その場合は各タイルに種別バッジを表示する。
      titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。
-     詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。 -->
+     詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。
+     検索結果は10件ずつページングし、前へ/次へボタンで切り替える。 -->
 <div class="work-import">
   @if (step() === 'search') {
     <div class="view-toggle">
@@ -70,30 +71,22 @@
       <div class="view-toggle">
         <button
           class="theme-btn"
-          [class.active]="titleLang() === 'original'"
-          type="button"
-          (click)="setTitleLang('original')"
-        >
-          ローマ字/英語
-        </button>
-        <button
-          class="theme-btn"
           [class.active]="titleLang() === 'ja'"
           type="button"
           (click)="setTitleLang('ja')"
         >
           日本語
         </button>
-      </div>
-      <div class="view-toggle">
         <button
           class="theme-btn"
-          [class.active]="sortBy() === 'relevance'"
+          [class.active]="titleLang() === 'original'"
           type="button"
-          (click)="setSortBy('relevance')"
+          (click)="setTitleLang('original')"
         >
-          関連度順
+          ローマ字/英語
         </button>
+      </div>
+      <div class="view-toggle">
         <button
           class="theme-btn"
           [class.active]="sortBy() === 'popularity'"
@@ -101,6 +94,14 @@
           (click)="setSortBy('popularity')"
         >
           人気度順
+        </button>
+        <button
+          class="theme-btn"
+          [class.active]="sortBy() === 'relevance'"
+          type="button"
+          (click)="setSortBy('relevance')"
+        >
+          関連度順
         </button>
         <button
           class="theme-btn"
@@ -114,7 +115,7 @@
     }
 
     <div class="cover-grid">
-      @for (result of sortedResults(); track result.externalId) {
+      @for (result of pagedResults(); track result.externalId) {
         <div class="cover-tile-wrap">
           <app-cover-tile
             [imageUrl]="result.coverImageUrl"
@@ -129,6 +130,12 @@
         </div>
       }
     </div>
+    @if (sortedResults().length > 0) {
+      <div class="pagination-row">
+        <button class="theme-btn" type="button" (click)="prevPage()" [disabled]="page() === 0">前へ</button>
+        <button class="theme-btn" type="button" (click)="nextPage()" [disabled]="!hasNextPage()">次へ</button>
+      </div>
+    }
     @if (!searching() && searchResults().length === 0) {
       <p class="hint">検索語を入力してください。</p>
     }
