@@ -3,8 +3,10 @@
  * ①検索→タイル選択 ②巻/話数候補選択 ③取り込み、の3ステップ。作品一覧タブ内に常時表示する（モーダルは使わない）。
  * 同一巻に複数の表紙候補（variantCoverImageUrls）がある場合、自動で先頭を表示しつつ
  * variantIndexByNumber signalでユーザーが手動で切り替えられるようにする。
+ * 1.5巻等の非整数巻は特別版/非売品であることが多いため、numberFilter signalで
+ * 「整数のみ／非整数のみ／すべて」の3択表示に絞り込める。
  */
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
 import { MediaType, Work } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from '@core/external-media/external-media.model';
@@ -15,6 +17,7 @@ import { Spinner } from '@shared/ui/spinner/spinner';
 import { WorksStateService } from '../works-state.service';
 
 type Step = 'search' | 'candidates';
+type NumberFilter = 'all' | 'integer' | 'fractional';
 
 @Component({
   selector: 'app-work-import',
@@ -43,6 +46,14 @@ export class WorkImport {
   protected selectedNumbers = signal<Set<number>>(new Set());
   protected groupTitle = signal('');
   protected variantIndexByNumber = signal<Map<number, number>>(new Map());
+  protected numberFilter = signal<NumberFilter>('integer');
+
+  protected visibleCandidates = computed(() => {
+    const filter = this.numberFilter();
+    if (filter === 'all') return this.candidates();
+    if (filter === 'integer') return this.candidates().filter((c) => Number.isInteger(c.number));
+    return this.candidates().filter((c) => !Number.isInteger(c.number));
+  });
 
   setMediaType(type: MediaType): void {
     this.mediaType.set(type);
@@ -88,7 +99,17 @@ export class WorkImport {
     candidates$.subscribe({
       next: (candidates) => {
         this.candidates.set(candidates);
-        this.selectedNumbers.set(new Set(candidates.map((c) => c.number)));
+        this.selectedNumbers.set(
+          new Set(
+            candidates
+              .filter((c) => {
+                if (this.numberFilter() === 'all') return true;
+                const isInt = Number.isInteger(c.number);
+                return this.numberFilter() === 'integer' ? isInt : !isInt;
+              })
+              .map((c) => c.number),
+          ),
+        );
         this.loadingCandidates.set(false);
       },
       error: () => {
@@ -116,6 +137,10 @@ export class WorkImport {
     });
   }
 
+  setNumberFilter(filter: NumberFilter): void {
+    this.numberFilter.set(filter);
+  }
+
   coverUrlFor(candidate: ExternalUnitCandidate): string | undefined {
     const variants = candidate.variantCoverImageUrls;
     if (!variants || variants.length === 0) return candidate.coverImageUrl;
@@ -138,7 +163,7 @@ export class WorkImport {
     const result = this.selectedWork();
     if (!result) return;
     const work = this.state.importWorkFromExternal(result);
-    const chosen = this.candidates()
+    const chosen = this.visibleCandidates()
       .filter((c) => this.selectedNumbers().has(c.number))
       .map((c) => ({ ...c, coverImageUrl: this.coverUrlFor(c) }));
     if (chosen.length > 0) {
