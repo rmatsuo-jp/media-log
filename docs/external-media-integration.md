@@ -1,6 +1,6 @@
 # 外部API連携（AniList / MangaDex）の関係性
 
-作品取り込み機能（[work-import.ts](../src/app/features/works/work-import/work-import.ts)）が利用する
+作品取り込み機能の検索・候補取得ロジック（[work-import-search.service.ts](../src/app/features/works/work-import/work-import-search.service.ts)、[work-import.ts](../src/app/features/works/work-import/work-import.ts)から呼び出される）が利用する
 外部API 2種の役割分担と依存関係をまとめる。
 
 ## 役割分担
@@ -14,7 +14,7 @@
 
 ## 依存関係（マンガ選択時のみ）
 
-`work-import.ts` の `selectWork()` を見ると、マンガを選んだ場合は次の流れになる。
+`work-import-search.service.ts` の `loadCandidatesFor()` を見ると、マンガを選んだ場合は次の流れになる。
 
 1. AniListの検索結果から得た `result.title` を使って
 2. **MangaDex側でタイトル文字列を再検索**（`mangadex.searchManga(result.title)`）
