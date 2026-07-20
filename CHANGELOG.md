@@ -1,3 +1,23 @@
+# [0.6.0](https://github.com/rmatsuo-jp/media-log/compare/v0.5.0...v0.6.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* AniListから取得できない話数英語タイトルの取得処理を削除 ([d5ddf98](https://github.com/rmatsuo-jp/media-log/commit/d5ddf98fe9b303523a95cd64405b89a60d96a981))
+* streamingEpisodesのtitle取得廃止に合わせテストを更新 ([1ca97c3](https://github.com/rmatsuo-jp/media-log/commit/1ca97c3d7a810ce8aa11d141f6a2af6a59aa1285))
+* 本番環境でService WorkerがMangaDex/AniList APIを横取りし504になる問題を修正 ([051e247](https://github.com/rmatsuo-jp/media-log/commit/051e2473cf45df547656a576b034bd71b909fdac))
+
+
+### Features
+
+* マンガ/アニメ絞り込みトグルを共通コンポーネント化 ([e4e905c](https://github.com/rmatsuo-jp/media-log/commit/e4e905c9f1f8a1dc18893de7b1cefdb4397656f7))
+* 作品一覧に件数表示とページングを追加 ([efc9965](https://github.com/rmatsuo-jp/media-log/commit/efc996548d9e8a4b32f9ca9cebdba1d801091016))
+* 作品詳細のUnit操作をクリック＋コンテキストメニューに刷新 ([23f69af](https://github.com/rmatsuo-jp/media-log/commit/23f69afb89f785821820985daa8a1771aa92d329))
+* 作品追加・表示の絞り込みトグルを統合し領域を分離 ([164b5d1](https://github.com/rmatsuo-jp/media-log/commit/164b5d1360dfecd7b461f8201a9fed9c52330b89))
+* 全巻既読の作品カードに既読バッジを表示 ([ecf1357](https://github.com/rmatsuo-jp/media-log/commit/ecf13573dfe319fd277dbedf974ad4b122b56b71))
+* 手動追加フォームをwork-importの詳細設定に統合 ([c74f4d8](https://github.com/rmatsuo-jp/media-log/commit/c74f4d8d18450748cbce08e636e4a6b55447f035))
+* 次に見るべき未読巻/話をバッジ表示 ([c8543d6](https://github.com/rmatsuo-jp/media-log/commit/c8543d65c17b6ab2b3e7ab1d984f47b773750a14))
+
 # [0.5.0](https://github.com/rmatsuo-jp/media-log/compare/v0.4.0...v0.5.0) (2026-07-19)
 
 
