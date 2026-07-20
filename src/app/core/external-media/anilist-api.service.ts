@@ -7,10 +7,12 @@
  * includeAdultがfalseの場合は成人向け作品(isAdult)を除外する。
  * Angular Service Workerは既定では同一オリジン以外のリクエストを傍受しないため、
  * ngsw-bypassクエリパラメータは付与しない。
+ * AniList側の一時的な504等はretry()で吸収し、それでも失敗した場合はエラーとして
+ * 呼び出し側（work-import-search.service.ts）に伝播させる。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, retry } from 'rxjs';
 import { MediaType } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from './external-media.model';
 
@@ -94,6 +96,7 @@ export class AnilistApiService {
             popularity: m.popularity ?? undefined,
           })),
         ),
+        retry({ count: 2, delay: 1000 }),
       );
   }
 
@@ -121,6 +124,7 @@ export class AnilistApiService {
             coverImageUrl: ep.thumbnail ?? undefined,
           }));
         }),
+        retry({ count: 2, delay: 1000 }),
       );
   }
 }

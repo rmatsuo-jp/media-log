@@ -151,6 +151,11 @@
 
     @if (search.loadingCandidates()) {
       <app-spinner />
+    } @else if (search.candidatesError(); as error) {
+      <p class="hint">{{ error }}</p>
+      <button class="theme-btn" type="button" (click)="search.retryLastLoadCandidates()">
+        再試行
+      </button>
     } @else if (search.candidates().length === 0) {
       <p class="hint">
         {{ work.mediaType === 'manga' ? '巻情報' : '話数サムネイル' }}
