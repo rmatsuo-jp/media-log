@@ -9,6 +9,10 @@
  * （同名・類似タイトル作品の巻データ誤取り込みを防ぐ）。一致がなければ巻候補は0件になる。
  * 書籍・映画等の将来的なメディア種別拡張時も、このサービスを再利用/差し替えできるようにコンポーネントから
  * 独立させている。
+ * loadCandidatesFor()はAPI呼び出し失敗時（外部APIの一時的な504等、AniList/MangaDex側のクライアントで
+ * retry済みでも解消しなかった場合）にcandidatesError signalへメッセージを設定し、「該当作品なし（0件）」
+ * と区別する。UI側はcandidatesErrorを見て再試行ボタンを出せるよう、直近のloadCandidatesFor呼び出しを
+ * retryLastLoadCandidates()で再実行できるようにしている。
  */
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -47,8 +51,14 @@ export class WorkImportSearchService {
 
   loadingCandidates = signal(false);
   candidates = signal<ExternalUnitCandidate[]>([]);
+  candidatesError = signal<string | null>(null);
   numberFilter = signal<NumberFilter>('integer');
   variantIndexByNumber = signal<Map<number, number>>(new Map());
+
+  private lastCandidatesRequest: {
+    result: ExternalWorkSearchResult;
+    onLoaded: (candidates: ExternalUnitCandidate[]) => void;
+  } | null = null;
 
   sortedResults = computed(() => {
     const sortBy = this.sortBy();
@@ -145,7 +155,9 @@ export class WorkImportSearchService {
     result: ExternalWorkSearchResult,
     onLoaded: (candidates: ExternalUnitCandidate[]) => void,
   ): void {
+    this.lastCandidatesRequest = { result, onLoaded };
     this.candidates.set([]);
+    this.candidatesError.set(null);
     this.variantIndexByNumber.set(new Map());
     this.loadingCandidates.set(true);
 
@@ -167,10 +179,17 @@ export class WorkImportSearchService {
       },
       error: () => {
         this.candidates.set([]);
+        this.candidatesError.set('取得に失敗しました。しばらくしてから再試行してください。');
         this.loadingCandidates.set(false);
         onLoaded([]);
       },
     });
+  }
+
+  retryLastLoadCandidates(): void {
+    if (!this.lastCandidatesRequest) return;
+    const { result, onLoaded } = this.lastCandidatesRequest;
+    this.loadCandidatesFor(result, onLoaded);
   }
 
   coverUrlFor(candidate: ExternalUnitCandidate): string | undefined {

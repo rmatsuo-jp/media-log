@@ -6,7 +6,11 @@
   <div class="form-group">
     <div class="section-header">
       <label class="label">app_settings（生データ）</label>
-      <button class="copy-btn" type="button" (click)="copy('settings-dump', settingsDump())">
+      <button
+        class="btn-secondary copy-btn"
+        type="button"
+        (click)="copy('settings-dump', settingsDump())"
+      >
         {{ copiedKey() === 'settings-dump' ? 'コピーしました' : 'コピー' }}
       </button>
     </div>
@@ -17,7 +21,7 @@
     <div class="form-group">
       <div class="section-header">
         <label class="label">{{ key }}</label>
-        <button class="copy-btn" type="button" (click)="copy(key, dumpKey(key))">
+        <button class="btn-secondary copy-btn" type="button" (click)="copy(key, dumpKey(key))">
           {{ copiedKey() === key ? 'コピーしました' : 'コピー' }}
         </button>
       </div>

@@ -4,7 +4,7 @@
  * タイトル右の共通トグル（MediaTypeToggle）で一覧のmediaType絞り込みと、追加フォームの検索絞り込みを
  * 同一signalで兼用する（非永続のローカルsignal）。
  * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
- * 行えるメニュー（Modal+CoverTile）を開く。
+ * 行えるメニュー（Modal+CoverTile）を開く。削除は共通ConfirmDialogで確認する。
  * 各カードには次に見るべき未読巻/話（WorksStateService.nextUnreadUnit）をバッジで表示し、
  * 全巻既読（WorksStateService.isFullyRead）の場合は代わりに「既読」バッジを表示する。
  * 絞り込み後の作品数・巻/話数合計を表示し、ページサイズ選択＋前/次ページ切り替えでグリッド表示件数を制御する。
@@ -15,6 +15,8 @@ import { MediaType, Work } from '@core/models/media.model';
 import { Badge } from '@shared/ui/badge/badge';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
+import { Card } from '@shared/ui/card/card';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog/confirm-dialog';
 import {
   MediaTypeToggle,
   MediaTypeToggleOption,
@@ -25,7 +27,7 @@ import { AddWorkForm } from '../add-work-form/add-work-form';
 
 @Component({
   selector: 'app-work-list',
-  imports: [RouterLink, Badge, AddWorkForm, Modal, CoverTile, MediaTypeToggle],
+  imports: [RouterLink, Badge, AddWorkForm, Modal, CoverTile, Card, ConfirmDialog, MediaTypeToggle],
   templateUrl: './work-list.html',
   styleUrl: './work-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -116,11 +118,25 @@ export class WorkList {
     this.coverPickerWork.set(null);
   }
 
+  protected pendingDelete = signal<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   deleteWorkFromMenu() {
     const work = this.coverPickerWork();
     if (!work) return;
-    if (!confirm(`「${work.title}」を削除しますか？（配下のグループ・記録も削除されます）`)) return;
-    this.state.deleteWork(work.id);
     this.coverPickerWork.set(null);
+    this.pendingDelete.set({
+      title: '作品を削除',
+      message: `「${work.title}」を削除しますか？（配下のグループ・記録も削除されます）`,
+      onConfirm: () => this.state.deleteWork(work.id),
+    });
+  }
+
+  confirmPendingDelete() {
+    this.pendingDelete()?.onConfirm();
+    this.pendingDelete.set(null);
   }
 }

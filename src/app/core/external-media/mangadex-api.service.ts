@@ -10,10 +10,12 @@
  * Angular Service Workerは既定では同一オリジン以外のリクエストを傍受しないため、
  * ngsw-bypassクエリパラメータは付与しない（付与するとMangaDex側のクエリパラメータ
  * スキーマ検証(400 validation_exception)に失敗する）。
+ * MangaDex側の一時的な504等はretry()で吸収し、それでも失敗した場合はエラーとして
+ * 呼び出し側（work-import-search.service.ts）に伝播させ、「該当作品なし」と区別する。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, retry } from 'rxjs';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from './external-media.model';
 
 const MANGADEX_API = 'https://api.mangadex.org';
@@ -87,6 +89,7 @@ export class MangadexApiService {
           };
         }),
       ),
+      retry({ count: 2, delay: 1000 }),
     );
   }
 
@@ -115,6 +118,7 @@ export class MangadexApiService {
           }))
           .sort((a, b) => a.number - b.number);
       }),
+      retry({ count: 2, delay: 1000 }),
     );
   }
 }

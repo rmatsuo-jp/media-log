@@ -2,11 +2,12 @@
  * @file 作品詳細ページ。Group→Unitの階層を表示し、既読トグル・周回カウント・
  * Group単位の「読みたい」フラグ・グループ/Unitの追加を行う。
  * Unitに外部API由来のcoverImageUrlがあれば表紙サムネイルを表示する。
- * 表紙を左クリックすると既読化＋周回数+1、右クリックするとコンテキストメニュー
- * （表紙候補が2件以上あれば「表紙を変更」、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
+ * 表紙を左クリックすると既読化＋周回数+1、右クリックすると表紙ピッカーモーダル
+ * （表紙候補が2件以上あれば候補グリッド、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
+ * work-listの表紙右クリックメニューと同じモーダル方式に統一している。
  * 既読は表紙画像内の「既読」バッジ（app-badge）で表す（チェックボックスは使わない）。
  * 最新既読日時（Unit.lastViewedAt）はunit-actions内にyyyy/MM/dd形式で表示する。
- * 表紙変更はModal+CoverTileの表紙ピッカーで行う。
+ * 表紙変更はModal+CoverTileの表紙ピッカーで行う。作品/グループ/Unitの削除は共通ConfirmDialogで確認する。
  * 次に見るべき未読Unit（nextUnreadUnitId）は unit-row に next-unread クラスと
  * 「次はこれ」バッジ（既読バッジと排他）で強調表示する。
  */
@@ -18,11 +19,12 @@ import { Group, Unit } from '@core/models/media.model';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Badge } from '@shared/ui/badge/badge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog/confirm-dialog';
 import { WorksStateService } from '../works-state.service';
 
 @Component({
   selector: 'app-work-detail',
-  imports: [Modal, CoverTile, Badge, DatePipe],
+  imports: [Modal, CoverTile, Badge, ConfirmDialog, DatePipe],
   templateUrl: './work-detail.html',
   styleUrl: './work-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,12 +53,28 @@ export class WorkDetail {
     if (w) this.state.toggleWorkWant(w);
   }
 
+  protected pendingDelete = signal<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  confirmPendingDelete() {
+    this.pendingDelete()?.onConfirm();
+    this.pendingDelete.set(null);
+  }
+
   deleteWork() {
     const w = this.work();
     if (!w) return;
-    if (!confirm(`「${w.title}」を削除しますか？（配下のグループ・記録も削除されます）`)) return;
-    this.state.deleteWork(w.id);
-    this.router.navigate(['/works']);
+    this.pendingDelete.set({
+      title: '作品を削除',
+      message: `「${w.title}」を削除しますか？（配下のグループ・記録も削除されます）`,
+      onConfirm: () => {
+        this.state.deleteWork(w.id);
+        this.router.navigate(['/works']);
+      },
+    });
   }
 
   addGroup() {
@@ -71,8 +89,11 @@ export class WorkDetail {
   }
 
   deleteGroup(group: Group) {
-    if (!confirm(`「${group.title}」を削除しますか？（配下の記録も削除されます）`)) return;
-    this.state.deleteGroup(group.id);
+    this.pendingDelete.set({
+      title: 'グループを削除',
+      message: `「${group.title}」を削除しますか？（配下の記録も削除されます）`,
+      onConfirm: () => this.state.deleteGroup(group.id),
+    });
   }
 
   newUnitNumber(groupId: string): string {
@@ -92,12 +113,14 @@ export class WorkDetail {
   }
 
   deleteUnit(unit: Unit) {
-    if (!confirm(`${unit.number}を削除しますか？`)) return;
-    this.state.deleteUnit(unit.id);
+    this.pendingDelete.set({
+      title: '削除',
+      message: `${unit.number}を削除しますか？`,
+      onConfirm: () => this.state.deleteUnit(unit.id),
+    });
   }
 
   protected coverPickerUnit = signal<Unit | null>(null);
-  protected contextMenu = signal<{ unit: Unit; x: number; y: number } | null>(null);
 
   onUnitCoverClick(unit: Unit) {
     this.state.incrementUnitViewCount(unit);
@@ -105,32 +128,21 @@ export class WorkDetail {
 
   onUnitCoverContextMenu(event: MouseEvent, unit: Unit) {
     event.preventDefault();
-    this.contextMenu.set({ unit, x: event.clientX, y: event.clientY });
-  }
-
-  closeContextMenu() {
-    this.contextMenu.set(null);
-  }
-
-  changeCoverFromMenu() {
-    const menu = this.contextMenu();
-    if (!menu) return;
-    this.coverPickerUnit.set(menu.unit);
-    this.contextMenu.set(null);
+    this.coverPickerUnit.set(unit);
   }
 
   decrementViewCountFromMenu() {
-    const menu = this.contextMenu();
-    if (!menu) return;
-    this.state.decrementUnitViewCount(menu.unit);
-    this.contextMenu.set(null);
+    const unit = this.coverPickerUnit();
+    if (!unit) return;
+    this.state.decrementUnitViewCount(unit);
+    this.coverPickerUnit.set(null);
   }
 
   deleteUnitFromMenu() {
-    const menu = this.contextMenu();
-    if (!menu) return;
-    this.deleteUnit(menu.unit);
-    this.contextMenu.set(null);
+    const unit = this.coverPickerUnit();
+    if (!unit) return;
+    this.coverPickerUnit.set(null);
+    this.deleteUnit(unit);
   }
 
   closeCoverPicker() {
