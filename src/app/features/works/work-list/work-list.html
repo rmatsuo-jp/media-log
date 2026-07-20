@@ -3,11 +3,16 @@
      追加フォームと作品グリッドはそれぞれ.cardで囲み、領域を視覚的に分離する。
      読みたいリストは独立ページ（wishlist）に分離済み。
      作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。
-     未読があるカードには「次: n巻/第n話」バッジ（nextUnreadLabel）を表示する。 -->
+     未読があるカードには「次: n巻/第n話」バッジ（nextUnreadLabel）を表示する。
+     件数表示（作品数・巻/話数合計）とページング（表示件数選択・前/次ページ）をグリッド周辺に配置する。 -->
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">作品</h1>
-    <app-media-type-toggle [options]="mediaTypeFilterOptions" [(value)]="mediaTypeFilter" />
+    <app-media-type-toggle
+      [options]="mediaTypeFilterOptions"
+      [value]="mediaTypeFilter()"
+      (valueChange)="onMediaTypeFilterChange($any($event))"
+    />
   </div>
 
   <div class="card add-section">
@@ -17,9 +22,13 @@
   <div class="card work-section">
     @if (filteredWorks().length === 0) {
       <p class="hint">まだ作品が登録されていません。</p>
+    } @else {
+      <div class="work-summary">
+        作品 {{ filteredWorks().length }}件 / 全 {{ totalUnitCount() }}巻・話
+      </div>
     }
     <div class="work-grid">
-      @for (work of filteredWorks(); track work.id) {
+      @for (work of pagedWorks(); track work.id) {
         <a class="work-card" [routerLink]="['/works', work.id]">
           <span class="work-cover-wrap" (contextmenu)="onWorkCoverContextMenu($event, work)">
             @if (work.coverImageUrl) {
@@ -43,6 +52,39 @@
         </a>
       }
     </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination-bar">
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="currentPage() === 1"
+          (click)="goToPrevPage()"
+        >
+          前へ
+        </button>
+        <span class="pagination-status">{{ currentPage() }} / {{ totalPages() }}</span>
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="currentPage() === totalPages()"
+          (click)="goToNextPage()"
+        >
+          次へ
+        </button>
+        <label class="page-size-select">
+          表示件数:
+          <select
+            [value]="pageSize()"
+            (change)="onPageSizeChange(+$any($event.target).value)"
+          >
+            @for (size of pageSizeOptions; track size) {
+              <option [value]="size">{{ size }}件</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
   </div>
 
   @if (coverPickerWork(); as pickWork) {

@@ -5,6 +5,7 @@
  * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
  * 作品タイトルは日本語（titleNative）を優先して保存する（アプリ全体で日本語表記を基本とする）。
  * nextUnreadUnit()はGroup.order→Unit.numberの順で最初の未読Unitを返す（次に見るべき巻/話の算出）。
+ * unitCountForWork()は作品配下の全Unit数（巻/話数の合計）を返す。
  */
 import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
@@ -77,6 +78,10 @@ export class WorksStateService {
 
   workById(id: string): Work | undefined {
     return this.works().find((w) => w.id === id);
+  }
+
+  unitCountForWork(workId: string): number {
+    return this.units().filter((u) => u.workId === workId).length;
   }
 
   // ── 書き込み系（すべてrepositoryへ委譲、コンポーネントは薄く保つ） ──
