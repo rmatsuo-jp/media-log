@@ -1,3 +1,16 @@
+# [0.7.0](https://github.com/rmatsuo-jp/media-log/compare/v0.6.0...v0.7.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* 外部APIリクエストからngsw-bypassパラメータを削除 ([1efdc94](https://github.com/rmatsuo-jp/media-log/commit/1efdc9423c53c734b1e671292e840540ae999522))
+* 巻・話の削除に確認ダイアログを追加 ([f25ee08](https://github.com/rmatsuo-jp/media-log/commit/f25ee08fca90e1c4ee89203a7f8bb61e666badbf))
+
+
+### Features
+
+* ゲーミフィケーション実績タブを追加 ([e31697d](https://github.com/rmatsuo-jp/media-log/commit/e31697d79000dda75d85a198e8ed707f5ad8f0d3))
+
 # [0.6.0](https://github.com/rmatsuo-jp/media-log/compare/v0.5.0...v0.6.0) (2026-07-20)
 
 
