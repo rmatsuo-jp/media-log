@@ -1,6 +1,7 @@
 /**
  * @file 各featureが個別に再定義していたカード（背面色・枠線・角丸・パディング）のrecipeを統一する共通コンポーネント。
  * 見た目は既存の .card グローバルクラス（styles.scss）と同一。paddingでバリエーションを切り替える。
+ * work-list/wishlistの作品カードで利用（padding="sm"）。
  */
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 

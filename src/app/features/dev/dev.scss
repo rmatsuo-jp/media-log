@@ -59,26 +59,14 @@
   }
 }
 
-// サイズ・色はグローバルの.btn-secondaryを継承
+// 色・形状はグローバルの.btn-secondaryを継承し、一覧内で使う分の小型化のみ上書きする
 .btn-secondary {
   white-space: nowrap;
 }
 
-.toggle-key,
 .copy-btn {
   padding: 0.375rem 0.75rem;
-  border: 2px solid var(--color-border);
-  border-radius: 0.5rem;
-  background: var(--color-surface);
-  color: var(--color-text);
   font-size: 0.75rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.2s;
-
-  &:hover {
-    border-color: var(--color-primary);
-  }
 }
 
 // ── a. 入出力ログ一覧 ──────────────────────────────────────────

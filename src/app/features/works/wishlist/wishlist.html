@@ -1,6 +1,7 @@
 <!-- @file 読みたいリストテンプレート。タイトル右に共通トグル（MediaTypeToggle）を配置し、
      追加フォーム（wantToConsume=true）と作品グリッド（filteredEntries()）はそれぞれ.cardで囲み領域を分離する
-     （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
+     （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。
+     作品カードはリンク（work-card-link）でapp-cardを囲む（work-listと共通）。 -->
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">読みたい</h1>
@@ -17,30 +18,34 @@
     }
     <div class="work-grid">
       @for (entry of filteredEntries(); track entry.work.id) {
-        <a class="work-card" [routerLink]="['/works', entry.work.id]">
-          <span class="work-cover-wrap">
-            @if (entry.work.coverImageUrl) {
-              <img
-                class="work-cover"
-                [src]="entry.work.coverImageUrl"
-                [alt]="entry.work.title"
-                loading="lazy"
-              />
-            } @else {
-              <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
-            }
-            <app-badge
-              class="work-badge"
-              [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
-              >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
-            >
-          </span>
-          <span class="work-title">{{ entry.work.title }}</span>
-          @if (!entry.work.wantToConsume) {
-            <span class="group-hint"
-              >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
-            >
-          }
+        <a class="work-card-link" [routerLink]="['/works', entry.work.id]">
+          <app-card padding="sm">
+            <div class="work-card">
+              <span class="work-cover-wrap">
+                @if (entry.work.coverImageUrl) {
+                  <img
+                    class="work-cover"
+                    [src]="entry.work.coverImageUrl"
+                    [alt]="entry.work.title"
+                    loading="lazy"
+                  />
+                } @else {
+                  <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
+                }
+                <app-badge
+                  class="work-badge"
+                  [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
+                  >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
+                >
+              </span>
+              <span class="work-title">{{ entry.work.title }}</span>
+              @if (!entry.work.wantToConsume) {
+                <span class="group-hint"
+                  >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+                >
+              }
+            </div>
+          </app-card>
         </a>
       }
     </div>

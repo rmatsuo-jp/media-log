@@ -8,6 +8,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Badge } from '@shared/ui/badge/badge';
+import { Card } from '@shared/ui/card/card';
 import { MediaType } from '@core/models/media.model';
 import {
   MediaTypeToggle,
@@ -19,7 +20,7 @@ import { AddWorkForm } from '../add-work-form/add-work-form';
 
 @Component({
   selector: 'app-wishlist',
-  imports: [RouterLink, Badge, AddWorkForm, MediaTypeToggle],
+  imports: [RouterLink, Badge, Card, AddWorkForm, MediaTypeToggle],
   templateUrl: './wishlist.html',
   styleUrl: './wishlist.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

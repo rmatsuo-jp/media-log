@@ -1,6 +1,6 @@
 /**
- * @file 今後の機能追加（削除確認・設定確認等）向けの共通モーダル。オーバーレイ＋Escで閉じるのみを提供する。
- * 現時点でこのコンポーネントを使用しているfeatureはない。
+ * @file 共通モーダル。オーバーレイ＋Escで閉じるのみを提供する。
+ * 表紙ピッカー（work-list/work-detail）と削除確認（shared/ui/confirm-dialog）から利用される。
  */
 import {
   ChangeDetectionStrategy,

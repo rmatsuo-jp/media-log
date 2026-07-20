@@ -1,1 +1,6 @@
-<span class="badge" [class]="'badge-' + variant()"><ng-content></ng-content></span>
+<span
+  class="badge"
+  [class]="'badge-' + variant()"
+  [class.badge-solid]="solid()"
+  ><ng-content></ng-content
+></span>

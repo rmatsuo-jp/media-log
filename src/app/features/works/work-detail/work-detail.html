@@ -1,11 +1,13 @@
 <!-- @file 作品詳細テンプレート。Group→Unitの階層表示、既読トグル・周回カウント・
      読みたいフラグの操作、グループ/Unit追加フォームを持つ。
      Unit一覧は画像中心のグリッドカードで、巻/話ラベルはw.mediaTypeで分岐。
-     表紙を左クリックすると既読化＋周回数+1、右クリックするとコンテキストメニュー
-     （表紙候補が2件以上あれば「表紙を変更」、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
+     表紙を左クリックすると既読化＋周回数+1、右クリックすると表紙ピッカーモーダル
+     （表紙候補が2件以上あれば候補グリッド、周回数>0なら「周回数を-1」、常に「削除」）を表示する
+     （work-listの表紙右クリックメニューと同じモーダル方式）。
      既読は表紙画像内の「既読」バッジ（app-badge）で表す。
      最新既読日時（lastViewedAt）はview-countの隣にyyyy/MM/dd形式で表示する。
-     次に見るべき未読Unit（nextUnreadUnitId）はunit-rowにnext-unreadクラスと「次はこれ」バッジで強調する。 -->
+     次に見るべき未読Unit（nextUnreadUnitId）はunit-rowにnext-unreadクラスと「次はこれ」バッジで強調する。
+     作品/グループ/Unitの削除は共通ConfirmDialogで確認する。 -->
 <div class="page">
   @if (work(); as w) {
     <div class="work-header">
@@ -52,9 +54,13 @@
                   <span class="unit-cover-placeholder">?</span>
                 }
                 @if (unit.viewed) {
-                  <app-badge class="unit-viewed-badge" variant="success">既読</app-badge>
+                  <app-badge class="unit-viewed-badge" variant="success" [solid]="true"
+                    >既読</app-badge
+                  >
                 } @else if (unit.id === nextUnreadUnitId()) {
-                  <app-badge class="unit-next-badge" variant="warning">次はこれ</app-badge>
+                  <app-badge class="unit-next-badge" variant="warning" [solid]="true"
+                    >次はこれ</app-badge
+                  >
                 }
               </span>
               <span class="unit-number">{{
@@ -102,46 +108,40 @@
     <p class="hint">作品が見つかりません。</p>
   }
 
-  @if (contextMenu(); as menu) {
-    <div
-      class="context-menu-overlay"
-      (click)="closeContextMenu()"
-      (contextmenu)="closeContextMenu(); $event.preventDefault()"
-    >
-      <div
-        class="context-menu"
-        [style.left.px]="menu.x"
-        [style.top.px]="menu.y"
-        (click)="$event.stopPropagation()"
-      >
-        @if ((menu.unit.coverImageCandidates?.length ?? 0) >= 2) {
-          <button class="context-menu-item" type="button" (click)="changeCoverFromMenu()">
-            表紙を変更
-          </button>
-        }
-        @if (menu.unit.viewCount > 0) {
-          <button class="context-menu-item" type="button" (click)="decrementViewCountFromMenu()">
+  @if (coverPickerUnit(); as pickUnit) {
+    <app-modal (closed)="closeCoverPicker()">
+      <h2 class="modal-title">
+        {{ work()?.mediaType === 'manga' ? pickUnit.number + '巻' : '第' + pickUnit.number + '話' }}
+      </h2>
+      @if ((pickUnit.coverImageCandidates?.length ?? 0) > 0) {
+        <div class="cover-picker-grid">
+          @for (url of pickUnit.coverImageCandidates; track url) {
+            <app-cover-tile
+              [imageUrl]="url"
+              [selected]="url === pickUnit.coverImageUrl"
+              size="sm"
+              (tileClick)="selectUnitCover(url)"
+            />
+          }
+        </div>
+      }
+      <div class="cover-picker-actions">
+        @if (pickUnit.viewCount > 0) {
+          <button class="btn-secondary" type="button" (click)="decrementViewCountFromMenu()">
             周回数を-1
           </button>
         }
-        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">削除</button>
-      </div>
-    </div>
-  }
-
-  @if (coverPickerUnit(); as pickUnit) {
-    <app-modal (closed)="closeCoverPicker()">
-      <h2 class="modal-title">表紙を選択</h2>
-      <div class="cover-picker-grid">
-        @for (url of pickUnit.coverImageCandidates; track url) {
-          <app-cover-tile
-            [imageUrl]="url"
-            [selected]="url === pickUnit.coverImageUrl"
-            size="sm"
-            (tileClick)="selectUnitCover(url)"
-          />
-        }
+        <button class="btn-secondary" type="button" (click)="deleteUnitFromMenu()">削除</button>
       </div>
     </app-modal>
+  }
+
+  @if (pendingDelete(); as pd) {
+    <app-confirm-dialog
+      [title]="pd.title"
+      [message]="pd.message"
+      (confirmed)="confirmPendingDelete()"
+      (cancelled)="pendingDelete.set(null)"
+    />
   }
 </div>
