@@ -5,10 +5,8 @@
  * searchWorksはmediaTypeに'both'を渡すと種別フィルタなしで検索し、結果ごとの実際の種別(m.type)を
  * 反映する。日本語タイトル(titleNative)・人気度(popularity)・スコア(averageScore)も併せて返す。
  * includeAdultがfalseの場合は成人向け作品(isAdult)を除外する。
- * 本番環境ではService Worker(ngsw)が未設定のクロスオリジンリクエストを横取りして504を
- * 返すことがあるため、全リクエストにngsw-bypassクエリパラメータを付与しSWの介入を回避する
- * （カスタムヘッダーにするとCORSプリフライトが発生し外部APIによっては失敗するため、
- * プリフライト不要なクエリパラメータ方式を採用）。
+ * Angular Service Workerは既定では同一オリジン以外のリクエストを傍受しないため、
+ * ngsw-bypassクエリパラメータは付与しない。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -16,7 +14,7 @@ import { Observable, map } from 'rxjs';
 import { MediaType } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from './external-media.model';
 
-const ANILIST_ENDPOINT = 'https://graphql.anilist.co?ngsw-bypass';
+const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
 
 interface AniListTitle {
   romaji: string | null;

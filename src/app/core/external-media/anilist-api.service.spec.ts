@@ -23,7 +23,7 @@ describe('AnilistApiService', () => {
     let result: unknown;
     service.searchWorks('繝ｯ繝ｳ繝斐・繧ｹ', 'manga').subscribe((r) => (result = r));
 
-    const req = httpMock.expectOne('https://graphql.anilist.co?ngsw-bypass');
+    const req = httpMock.expectOne('https://graphql.anilist.co');
     expect(req.request.body.variables).toEqual({
       search: '繝ｯ繝ｳ繝斐・繧ｹ',
       type: 'MANGA',
@@ -60,7 +60,7 @@ describe('AnilistApiService', () => {
   it('includeAdult縺荊rue縺ｮ蝣ｴ蜷医・isAdult繝輔ぅ繝ｫ繧ｿ縺ｪ縺励〒讀懃ｴ｢縺吶ｋ', () => {
     service.searchWorks('繝ｯ繝ｳ繝斐・繧ｹ', 'manga', true).subscribe();
 
-    const req = httpMock.expectOne('https://graphql.anilist.co?ngsw-bypass');
+    const req = httpMock.expectOne('https://graphql.anilist.co');
     expect(req.request.body.variables).toEqual({
       search: '繝ｯ繝ｳ繝斐・繧ｹ',
       type: 'MANGA',
@@ -73,7 +73,7 @@ describe('AnilistApiService', () => {
     let result: unknown;
     service.getAnimeEpisodes('21').subscribe((r) => (result = r));
 
-    const req = httpMock.expectOne('https://graphql.anilist.co?ngsw-bypass');
+    const req = httpMock.expectOne('https://graphql.anilist.co');
     req.flush({ data: { Media: { streamingEpisodes: null } } });
 
     expect(result).toEqual([]);
@@ -83,7 +83,7 @@ describe('AnilistApiService', () => {
     let result: unknown;
     service.getAnimeEpisodes('21').subscribe((r) => (result = r));
 
-    const req = httpMock.expectOne('https://graphql.anilist.co?ngsw-bypass');
+    const req = httpMock.expectOne('https://graphql.anilist.co');
     req.flush({
       data: {
         Media: {
