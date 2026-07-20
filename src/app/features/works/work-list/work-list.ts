@@ -1,7 +1,7 @@
 /**
  * @file 作品一覧ページ。作品追加フォーム（features/works/add-work-form）と作品グリッドを表示する。
  * 読みたいリストは独立ページ（features/works/wishlist）に分離済み。
- * 上部のマンガ/アニメ/すべてトグルで一覧をmediaType絞り込み（非永続のローカルsignal）。
+ * 上部の共通トグル（MediaTypeToggle）で一覧をmediaType絞り込み（非永続のローカルsignal）。
  * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
  * 行えるメニュー（Modal+CoverTile）を開く。
  */
@@ -11,12 +11,13 @@ import { MediaType, Work } from '@core/models/media.model';
 import { Badge } from '@shared/ui/badge/badge';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
+import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
 
 @Component({
   selector: 'app-work-list',
-  imports: [RouterLink, Badge, AddWorkForm, Modal, CoverTile],
+  imports: [RouterLink, Badge, AddWorkForm, Modal, CoverTile, MediaTypeToggle],
   templateUrl: './work-list.html',
   styleUrl: './work-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +30,11 @@ export class WorkList {
   }
 
   // ── マンガ/アニメ絞り込み（非永続） ──
+  protected readonly mediaTypeFilterOptions: MediaTypeToggleOption[] = [
+    { value: 'all', label: 'すべて' },
+    { value: 'manga', label: 'マンガ' },
+    { value: 'anime', label: 'アニメ' },
+  ];
   protected mediaTypeFilter = signal<MediaType | 'all'>('all');
 
   protected filteredWorks = computed(() => {

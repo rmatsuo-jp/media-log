@@ -1,9 +1,14 @@
 /**
  * @file AniList GraphQL API（https://graphql.anilist.co）のクライアント。APIキー不要。
  * マンガ・アニメ横断の作品検索とシリーズ表紙、アニメの話数サムネイル（取得できる作品のみ）を提供する。
+ * 話数タイトルはAniList側に日本語版が存在しないため取得せず、呼び出し側の「第N話」表記に委ねる。
  * searchWorksはmediaTypeに'both'を渡すと種別フィルタなしで検索し、結果ごとの実際の種別(m.type)を
  * 反映する。日本語タイトル(titleNative)・人気度(popularity)・スコア(averageScore)も併せて返す。
  * includeAdultがfalseの場合は成人向け作品(isAdult)を除外する。
+ * 本番環境ではService Worker(ngsw)が未設定のクロスオリジンリクエストを横取りして504を
+ * 返すことがあるため、全リクエストにngsw-bypassクエリパラメータを付与しSWの介入を回避する
+ * （カスタムヘッダーにするとCORSプリフライトが発生し外部APIによっては失敗するため、
+ * プリフライト不要なクエリパラメータ方式を採用）。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -11,7 +16,7 @@ import { Observable, map } from 'rxjs';
 import { MediaType } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from './external-media.model';
 
-const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
+const ANILIST_ENDPOINT = 'https://graphql.anilist.co?ngsw-bypass';
 
 interface AniListTitle {
   romaji: string | null;
@@ -20,7 +25,6 @@ interface AniListTitle {
 }
 
 interface AniListStreamingEpisode {
-  title: string | null;
   thumbnail: string | null;
 }
 
@@ -96,11 +100,13 @@ export class AnilistApiService {
   }
 
   // アニメの話数サムネイル。streamingEpisodesを持たない作品では空配列を返す（呼び出し側でシリーズ表紙にフォールバック）。
+  // AniListのstreamingEpisodes.titleは配信サイト表示用の英語名しか持たず日本語版が存在しないため取得しない。
+  // タイトルは呼び出し側で「第N話」表記にフォールバックする。
   getAnimeEpisodes(externalId: string): Observable<ExternalUnitCandidate[]> {
     const graphqlQuery = `
       query ($id: Int) {
         Media(id: $id) {
-          streamingEpisodes { title thumbnail }
+          streamingEpisodes { thumbnail }
         }
       }
     `;
@@ -114,7 +120,6 @@ export class AnilistApiService {
           const episodes = res.data.Media?.streamingEpisodes ?? [];
           return episodes.map((ep, index) => ({
             number: index + 1,
-            title: ep.title ?? undefined,
             coverImageUrl: ep.thumbnail ?? undefined,
           }));
         }),

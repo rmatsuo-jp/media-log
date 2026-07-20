@@ -8,32 +8,7 @@
      タイトル入力は2文字以上でデバウンス自動検索される（「検索」ボタン/Enterは即時検索）。 -->
 <div class="work-import">
   @if (step() === 'search') {
-    <div class="view-toggle">
-      <button
-        class="theme-btn"
-        [class.active]="search.mediaType() === 'manga'"
-        type="button"
-        (click)="search.mediaType.set('manga')"
-      >
-        マンガ
-      </button>
-      <button
-        class="theme-btn"
-        [class.active]="search.mediaType() === 'anime'"
-        type="button"
-        (click)="search.mediaType.set('anime')"
-      >
-        アニメ
-      </button>
-      <button
-        class="theme-btn"
-        [class.active]="search.mediaType() === 'both'"
-        type="button"
-        (click)="search.mediaType.set('both')"
-      >
-        両方
-      </button>
-    </div>
+    <app-media-type-toggle [options]="mediaTypeOptions" [(value)]="search.mediaType" />
 
     <div class="add-row">
       <input
@@ -68,6 +43,7 @@
         />
         成人向け作品を含める
       </label>
+      <ng-content select="[manualAdd]" />
     </details>
 
     @if (search.searchError()) {
@@ -159,9 +135,6 @@
           次へ
         </button>
       </div>
-    }
-    @if (!search.searching() && search.searchResults().length === 0) {
-      <p class="hint">検索語を入力してください。</p>
     }
   } @else if (selectedWork(); as work) {
     <button class="link-button" type="button" (click)="backToSearch()">← 検索に戻る</button>

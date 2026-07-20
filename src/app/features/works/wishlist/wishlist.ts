@@ -3,18 +3,19 @@
  * 持つ作品を一覧表示する（作品一覧ページから独立したサイドバー項目）。
  * 上部には作品一覧ページと共通の追加フォーム（add-work-form）を
  * wantToConsume=trueで埋め込み、このページから追加した作品はそのまま読みたいに入る。
- * さらにその下のマンガ/アニメ/すべてトグルで一覧をmediaType絞り込み（非永続のローカルsignal）。
+ * さらにその下の共通トグル（MediaTypeToggle）で一覧をmediaType絞り込み（非永続のローカルsignal）。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Badge } from '@shared/ui/badge/badge';
 import { MediaType } from '@core/models/media.model';
+import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
 
 @Component({
   selector: 'app-wishlist',
-  imports: [RouterLink, Badge, AddWorkForm],
+  imports: [RouterLink, Badge, AddWorkForm, MediaTypeToggle],
   templateUrl: './wishlist.html',
   styleUrl: './wishlist.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +28,11 @@ export class Wishlist {
   }
 
   // ── マンガ/アニメ絞り込み（非永続） ──
+  protected readonly mediaTypeFilterOptions: MediaTypeToggleOption[] = [
+    { value: 'all', label: 'すべて' },
+    { value: 'manga', label: 'マンガ' },
+    { value: 'anime', label: 'アニメ' },
+  ];
   protected mediaTypeFilter = signal<MediaType | 'all'>('all');
 
   protected filteredEntries = computed(() => {

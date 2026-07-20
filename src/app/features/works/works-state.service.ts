@@ -107,6 +107,10 @@ export class WorksStateService {
     this.repo.incrementUnitViewCount(unit);
   }
 
+  decrementUnitViewCount(unit: Unit): void {
+    this.repo.decrementUnitViewCount(unit);
+  }
+
   deleteUnit(id: string): void {
     this.repo.deleteUnit(id);
   }

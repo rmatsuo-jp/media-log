@@ -136,6 +136,18 @@ export class MediaRepositoryService {
     this.sync.pushUnits([updated]);
   }
 
+  decrementUnitViewCount(unit: Unit): void {
+    const viewCount = Math.max(0, unit.viewCount - 1);
+    const updated: Unit = {
+      ...unit,
+      viewed: viewCount > 0,
+      viewCount,
+      updatedAt: nowIso(),
+    };
+    this.store.saveUnit(updated);
+    this.sync.pushUnits([updated]);
+  }
+
   // 右クリックの表紙ピッカーで選び直した表紙候補を保存する。
   updateUnitCover(unit: Unit, coverImageUrl: string): void {
     const updated: Unit = { ...unit, coverImageUrl, updatedAt: nowIso() };
