@@ -1,3 +1,10 @@
+## [0.7.1](https://github.com/rmatsuo-jp/media-log/compare/v0.7.0...v0.7.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* 外部API取得失敗時にリトライと再試行UIを追加 ([cfd1032](https://github.com/rmatsuo-jp/media-log/commit/cfd10329a1a60382a585b6b3583447bcfdfd4a76))
+
 # [0.7.0](https://github.com/rmatsuo-jp/media-log/compare/v0.6.0...v0.7.0) (2026-07-20)
 
 
