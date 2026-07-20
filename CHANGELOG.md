@@ -1,3 +1,10 @@
+## [0.7.2](https://github.com/rmatsuo-jp/media-log/compare/v0.7.1...v0.7.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* MangaDex検索でCDNキャッシュ汚染によるCORSエラーを回避 ([c6e8473](https://github.com/rmatsuo-jp/media-log/commit/c6e8473a4a68b21acbe9f5facdf24e45ebf99a96))
+
 ## [0.7.1](https://github.com/rmatsuo-jp/media-log/compare/v0.7.0...v0.7.1) (2026-07-20)
 
 
