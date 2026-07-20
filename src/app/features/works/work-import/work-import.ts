@@ -5,6 +5,8 @@
  * step/selectedNumbers/groupTitle等のUI選択状態と、取り込み確定（confirmImport）の橋渡しに専念する。
  * 同一巻に複数の表紙候補（variantCoverImageUrls）がある場合の切り替えや、1.5巻等の非整数巻の絞り込み
  * （numberFilter）はサービス側のsignalを参照する。
+ * 詳細設定（<details>）内は`[manualAdd]`属性でng-content投影可能にし、呼び出し元（AddWorkForm）の
+ * 手動タイトル追加フォームを同じ詳細設定に統合表示する。
  */
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { Work } from '@core/models/media.model';

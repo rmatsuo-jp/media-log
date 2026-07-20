@@ -1,13 +1,9 @@
 <!-- @file 追加フォームテンプレート。外部検索パネル（app-work-import）を常時表示し、
-     手動入力はトグルで展開するオプション。 -->
+     手動入力はapp-work-import側の詳細設定にng-content投影して統合する。 -->
 <div class="form-group add-form">
   <label class="label">作品を追加</label>
-  <app-work-import (imported)="onImported($event)" />
-
-  <button class="btn-secondary" type="button" (click)="toggleManual()">手動で追加</button>
-
-  @if (manualOpen()) {
-    <div class="add-row">
+  <app-work-import (imported)="onImported($event)">
+    <div manualAdd class="add-row">
       <select
         class="select"
         [value]="newMediaType()"
@@ -24,7 +20,7 @@
         (input)="newTitle.set($any($event.target).value)"
         (keydown.enter)="addWork()"
       />
-      <button class="btn-primary" type="button" (click)="addWork()">追加</button>
+      <button class="btn-primary" type="button" (click)="addWork()">手動で追加</button>
     </div>
-  }
+  </app-work-import>
 </div>
