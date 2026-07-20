@@ -12,6 +12,7 @@ import { ExternalWorkSearchResult } from '@core/external-media/external-media.mo
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
+import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
 import { WorkImportSearchService } from './work-import-search.service';
 
@@ -19,7 +20,7 @@ type Step = 'search' | 'candidates';
 
 @Component({
   selector: 'app-work-import',
-  imports: [CoverTile, Spinner, Badge],
+  imports: [CoverTile, Spinner, Badge, MediaTypeToggle],
   providers: [WorkImportSearchService],
   templateUrl: './work-import.html',
   styleUrl: './work-import.scss',
@@ -28,6 +29,13 @@ type Step = 'search' | 'candidates';
 export class WorkImport {
   private state = inject(WorksStateService);
   protected search = inject(WorkImportSearchService);
+
+  // ── マンガ/アニメ/両方絞り込み（共通トグル用） ──
+  protected readonly mediaTypeOptions: MediaTypeToggleOption[] = [
+    { value: 'both', label: 'すべて' },
+    { value: 'manga', label: 'マンガ' },
+    { value: 'anime', label: 'アニメ' },
+  ];
 
   imported = output<Work>();
 

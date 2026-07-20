@@ -1,0 +1,12 @@
+<div class="view-toggle">
+  @for (opt of options(); track opt.value) {
+    <button
+      class="theme-btn"
+      type="button"
+      [class.active]="value() === opt.value"
+      (click)="value.set(opt.value)"
+    >
+      {{ opt.label }}
+    </button>
+  }
+</div>

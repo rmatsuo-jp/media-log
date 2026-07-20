@@ -1,37 +1,12 @@
 <!-- @file 読みたいリストテンプレート。上部に共通の追加フォーム（wantToConsume=true）、
-     マンガ/アニメ/すべての絞り込みトグル、下部にfilteredEntries()を画像優先のグリッドで並べる
+     共通トグル（MediaTypeToggle）による絞り込み、下部にfilteredEntries()を画像優先のグリッドで並べる
      （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
 <div class="page">
   <h1 class="page-title">読みたい</h1>
 
   <app-add-work-form [wantToConsume]="true" />
 
-  <div class="view-toggle">
-    <button
-      class="theme-btn"
-      type="button"
-      [class.active]="mediaTypeFilter() === 'all'"
-      (click)="mediaTypeFilter.set('all')"
-    >
-      すべて
-    </button>
-    <button
-      class="theme-btn"
-      type="button"
-      [class.active]="mediaTypeFilter() === 'manga'"
-      (click)="mediaTypeFilter.set('manga')"
-    >
-      マンガ
-    </button>
-    <button
-      class="theme-btn"
-      type="button"
-      [class.active]="mediaTypeFilter() === 'anime'"
-      (click)="mediaTypeFilter.set('anime')"
-    >
-      アニメ
-    </button>
-  </div>
+  <app-media-type-toggle [options]="mediaTypeFilterOptions" [(value)]="mediaTypeFilter" />
 
   @if (filteredEntries().length === 0) {
     <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
