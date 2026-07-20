@@ -4,6 +4,7 @@
  * 上部の共通トグル（MediaTypeToggle）で一覧をmediaType絞り込み（非永続のローカルsignal）。
  * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
  * 行えるメニュー（Modal+CoverTile）を開く。
+ * 各カードには次に見るべき未読巻/話（WorksStateService.nextUnreadUnit）をバッジで表示する。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -27,6 +28,12 @@ export class WorkList {
 
   mediaTypeLabel(type: MediaType): string {
     return type === 'manga' ? 'マンガ' : 'アニメ';
+  }
+
+  nextUnreadLabel(work: Work): string | null {
+    const unit = this.state.nextUnreadUnit(work.id);
+    if (!unit) return null;
+    return work.mediaType === 'manga' ? `次: ${unit.number}巻` : `次: 第${unit.number}話`;
   }
 
   // ── マンガ/アニメ絞り込み（非永続） ──

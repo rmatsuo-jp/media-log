@@ -21,6 +21,19 @@
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
     gap: 1rem;
   }
+
+  .work-badge,
+  .next-unread-badge {
+    ::ng-deep .badge {
+      font-size: 0.9rem;
+      padding: 0.3rem 0.75rem;
+    }
+  }
+
+  .want-mark {
+    font-size: 1.2rem;
+    padding: 0.1rem 0.45rem;
+  }
 }
 
 .work-card {
@@ -63,6 +76,23 @@
   position: absolute;
   top: var(--space-1);
   left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.next-unread-badge {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-warning);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
 }
 
 .want-mark {

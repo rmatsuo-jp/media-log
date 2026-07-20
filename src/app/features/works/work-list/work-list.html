@@ -1,7 +1,8 @@
 <!-- @file 作品一覧テンプレート。上部に共通の追加フォーム（app-add-work-form）、
      マンガ/アニメ/すべての絞り込みトグル、下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
      読みたいリストは独立ページ（wishlist）に分離済み。
-     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
+     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。
+     未読があるカードには「次: n巻/第n話」バッジ（nextUnreadLabel）を表示する。 -->
 <div class="page">
   <h1 class="page-title">作品</h1>
 
@@ -28,6 +29,9 @@
           >
           @if (work.wantToConsume) {
             <span class="want-mark">★</span>
+          }
+          @if (nextUnreadLabel(work); as label) {
+            <app-badge class="next-unread-badge" variant="warning">{{ label }}</app-badge>
           }
         </span>
         <span class="work-title">{{ work.title }}</span>
