@@ -70,7 +70,7 @@ ng add @angular/pwa
   "scope": "./",
   "start_url": "./",
   "background_color": "#ffffff",
-  "theme_color": "#1976d2",
+  "theme_color": "#4f46e5",
   "lang": "ja"
 }
 ```

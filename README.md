@@ -74,7 +74,7 @@ npm run lint:text  # 表記ゆれチェック（docs, README.md, ARCHITECTURE.md
 src/app/
 ├── core/         # Firebase連携・設定・models・media（Work/Group/Unit永続化）などプラットフォーム共通
 ├── shared/       # 共通UIコンポーネント・ユーティリティ
-└── features/     # works（作品・記録管理）/ settings / legal / dev
+└── features/     # works（作品・記録管理）/ achievements（実績）/ settings / legal / dev
 ```
 
 ## ドキュメント
