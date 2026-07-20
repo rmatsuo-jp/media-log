@@ -2,7 +2,7 @@
      手動入力はapp-work-import側の詳細設定にng-content投影して統合する。 -->
 <div class="form-group add-form">
   <label class="label">作品を追加</label>
-  <app-work-import (imported)="onImported($event)">
+  <app-work-import [mediaType]="mediaType()" (imported)="onImported($event)">
     <div manualAdd class="add-row">
       <select
         class="select"

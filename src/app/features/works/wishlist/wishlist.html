@@ -1,43 +1,48 @@
-<!-- @file 読みたいリストテンプレート。上部に共通の追加フォーム（wantToConsume=true）、
-     共通トグル（MediaTypeToggle）による絞り込み、下部にfilteredEntries()を画像優先のグリッドで並べる
+<!-- @file 読みたいリストテンプレート。タイトル右に共通トグル（MediaTypeToggle）を配置し、
+     追加フォーム（wantToConsume=true）と作品グリッド（filteredEntries()）はそれぞれ.cardで囲み領域を分離する
      （画像下部にタイトル、work自体がwantToConsumeでない場合は該当グループ名を添える）。 -->
 <div class="page">
-  <h1 class="page-title">読みたい</h1>
+  <div class="page-header">
+    <h1 class="page-title">読みたい</h1>
+    <app-media-type-toggle [options]="mediaTypeFilterOptions" [(value)]="mediaTypeFilter" />
+  </div>
 
-  <app-add-work-form [wantToConsume]="true" />
+  <div class="card add-section">
+    <app-add-work-form [wantToConsume]="true" [mediaType]="mediaTypeFilter()" />
+  </div>
 
-  <app-media-type-toggle [options]="mediaTypeFilterOptions" [(value)]="mediaTypeFilter" />
-
-  @if (filteredEntries().length === 0) {
-    <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
-  }
-  <div class="work-grid">
-    @for (entry of filteredEntries(); track entry.work.id) {
-      <a class="work-card" [routerLink]="['/works', entry.work.id]">
-        <span class="work-cover-wrap">
-          @if (entry.work.coverImageUrl) {
-            <img
-              class="work-cover"
-              [src]="entry.work.coverImageUrl"
-              [alt]="entry.work.title"
-              loading="lazy"
-            />
-          } @else {
-            <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
-          }
-          <app-badge
-            class="work-badge"
-            [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
-            >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
-          >
-        </span>
-        <span class="work-title">{{ entry.work.title }}</span>
-        @if (!entry.work.wantToConsume) {
-          <span class="group-hint"
-            >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
-          >
-        }
-      </a>
+  <div class="card work-section">
+    @if (filteredEntries().length === 0) {
+      <p class="hint">「読みたい」に指定した作品・グループはありません。</p>
     }
+    <div class="work-grid">
+      @for (entry of filteredEntries(); track entry.work.id) {
+        <a class="work-card" [routerLink]="['/works', entry.work.id]">
+          <span class="work-cover-wrap">
+            @if (entry.work.coverImageUrl) {
+              <img
+                class="work-cover"
+                [src]="entry.work.coverImageUrl"
+                [alt]="entry.work.title"
+                loading="lazy"
+              />
+            } @else {
+              <span class="work-cover-placeholder">{{ entry.work.title.slice(0, 1) }}</span>
+            }
+            <app-badge
+              class="work-badge"
+              [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
+              >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
+            >
+          </span>
+          <span class="work-title">{{ entry.work.title }}</span>
+          @if (!entry.work.wantToConsume) {
+            <span class="group-hint"
+              >（{{ entry.visibleGroups.map((g) => g.title).join('、') }}）</span
+            >
+          }
+        </a>
+      }
+    </div>
   </div>
 </div>

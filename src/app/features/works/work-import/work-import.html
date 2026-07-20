@@ -5,11 +5,10 @@
      titleLangでタイトル表示をローマ字/英語⇔日本語に、sortByで人気度/スコア順の並び替えができる。
      詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。
      検索結果は10件ずつページングし、前へ/次へボタンで切り替える。
-     タイトル入力は2文字以上でデバウンス自動検索される（「検索」ボタン/Enterは即時検索）。 -->
+     タイトル入力は2文字以上でデバウンス自動検索される（「検索」ボタン/Enterは即時検索）。
+     マンガ/アニメ/すべての絞り込みは呼び出し元（work-list）のトグルから受け取り、自前では表示しない。 -->
 <div class="work-import">
   @if (step() === 'search') {
-    <app-media-type-toggle [options]="mediaTypeOptions" [(value)]="search.mediaType" />
-
     <div class="add-row">
       <input
         class="text-input"

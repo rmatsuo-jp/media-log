@@ -1,3 +1,21 @@
+// ── タイトルとマンガ/アニメ絞り込みトグルを横並びに配置 ──
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .page-title {
+    margin: 0;
+  }
+}
+
+// ── 追加フォームと作品グリッドの領域分離 ──
+.add-section {
+  margin-bottom: 1.25rem;
+}
+
 // ── マンガ/アニメ絞り込みトグル ──
 .view-toggle {
   display: flex;
