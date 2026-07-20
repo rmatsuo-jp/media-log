@@ -103,7 +103,11 @@
   }
 
   @if (contextMenu(); as menu) {
-    <div class="context-menu-overlay" (click)="closeContextMenu()" (contextmenu)="closeContextMenu(); $event.preventDefault()">
+    <div
+      class="context-menu-overlay"
+      (click)="closeContextMenu()"
+      (contextmenu)="closeContextMenu(); $event.preventDefault()"
+    >
       <div
         class="context-menu"
         [style.left.px]="menu.x"
@@ -120,9 +124,7 @@
             周回数を-1
           </button>
         }
-        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">
-          削除
-        </button>
+        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">削除</button>
       </div>
     </div>
   }

@@ -10,7 +10,15 @@
  * mediaType inputは呼び出し元（work-list）のトグル値を受け取り、effectでsearch.mediaTypeへ同期する
  * （自前のトグルUIは持たない）。
  */
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { Work } from '@core/models/media.model';
 import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';

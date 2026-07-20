@@ -15,7 +15,10 @@ import { MediaType, Work } from '@core/models/media.model';
 import { Badge } from '@shared/ui/badge/badge';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
-import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
+import {
+  MediaTypeToggle,
+  MediaTypeToggleOption,
+} from '@shared/ui/media-type-toggle/media-type-toggle';
 import { MediaTypeFilter } from '../work-import/work-import-search.service';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';

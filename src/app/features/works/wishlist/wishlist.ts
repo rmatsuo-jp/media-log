@@ -9,7 +9,10 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { Badge } from '@shared/ui/badge/badge';
 import { MediaType } from '@core/models/media.model';
-import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
+import {
+  MediaTypeToggle,
+  MediaTypeToggleOption,
+} from '@shared/ui/media-type-toggle/media-type-toggle';
 import { MediaTypeFilter } from '../work-import/work-import-search.service';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
