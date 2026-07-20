@@ -6,12 +6,9 @@
  */
 import { Injectable, inject } from '@angular/core';
 import { Group, Unit, Work } from '@core/models/media.model';
+import { nowIso } from '@shared/utils/date.util';
 import { MediaFirestoreSyncService } from './media-firestore-sync.service';
 import { MediaStoreService } from './media-store.service';
-
-function nowIso(): string {
-  return new Date().toISOString();
-}
 
 function newId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;

@@ -17,6 +17,8 @@
 | [setup.md](setup.md)                                           | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
 | [deploy-to-android-pwa.md](deploy-to-android-pwa.md)           | GitHub PagesへのPWAデプロイとAndroid端末へのインストール手順                                   |
 | [external-media-integration.md](external-media-integration.md) | 作品取り込みが使う外部API（AniList/Google Books/openBD）の役割分担と依存関係                     |
+| [data-design.md](data-design.md)                                | Work/Group/Unitのドメインモデルと、tombstone方式のlocalStorage/Firestore永続化設計               |
+| [api.md](api.md)                                                | 外部連携API（AniList/Google Books/openBD/NDL Search）のエンドポイント・リクエスト/レスポンス仕様 |
 
 ## 法務
 

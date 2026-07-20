@@ -33,7 +33,8 @@ graph TD
         Models["models\nWork/Group/Unit型定義"]
         Media["media\nMediaRepositoryService\n（ローカル+クラウド永続化）"]
         AchievementsCore["achievements\nAchievementsRepositoryService\n（実績定義・進捗の永続化）"]
-        ExternalMedia["external-media\nAniList / Google Books / openBD\n（作品取り込み用の外部API連携）"]
+        Persistence["persistence\nTombstoneCollectionStore /\nTombstoneFirestoreSync\n（汎用tombstone永続化+同期層）"]
+        ExternalMedia["external-media\nAniList（作品検索）/\nGoogle Books+openBD+NDL Search\n（マンガ巻数・表紙取得。旧MangaDexから移行）"]
         SettingsStore["settings\nSettingsStoreService（theme）"]
         Firebase["firebase\nAuthService / firebase.init"]
     end
@@ -42,6 +43,8 @@ graph TD
 
     Features --> Core --> Shared
 
+    Media --> Persistence
+    AchievementsCore --> Persistence
     Media --- LocalStorage[("LocalStorage")]
     Media --- Firestore[("Cloud Firestore")]
     Firebase --- FirebaseAuth["Firebase Authentication"]
@@ -109,33 +112,66 @@ erDiagram
 
 ## 3. 永続化（ローカル + クラウド同期）
 
-`core/media/`に3つのサービスを持つ。姉妹アプリeibun-labの`SessionRepositoryService`/
-`FirestoreSyncService`と同じ「ローカル保存 → Firestoreへfire-and-forget push」パターンと、
-tombstone方式の論理削除（`deleted`フラグ + OR結合マージ）を踏襲する。
+localStorage永続化 + tombstone論理削除 + Firestore双方向同期という組み合わせは、mediaType非依存の
+汎用層として`core/persistence/`に1度だけ実装されている（旧: media/achievementsそれぞれが個別に
+同じロジックを持っていた三重複を統合した）。姉妹アプリeibun-labの`SessionRepositoryService`/
+`FirestoreSyncService`と同じ「ローカル保存 → Firestoreへfire-and-forget push」パターンを踏襲する。
 
-- **`media-store.service.ts`**: works/groups/unitsを3つの独立したlocalStorageキー
-  （`media_works` / `media_groups` / `media_units`）でCRUD管理。Work削除時は配下のGroup/Unitも
-  連動してtombstone化する（カスケード）。
-- **`media-firestore-sync.service.ts`**: `AuthService.user()`を`effect()`で監視し、ログイン時に
-  `apps/media_log/users/{uid}/works|groups|units/{id}`と双方向マージ。以後の保存操作で
-  fire-and-forget push。
+### `core/persistence/`（汎用層）
+
+- **`tombstone-collection.store.ts`**: `createTombstoneCollectionStore<T>(storageKey, onStorageFull)`。
+  1つのlocalStorageキーに対するCRUD（`persist`/`save`/`softDelete`）をsignalで提供する。
+  `all`（tombstone含む全件。Firestore同期の突き合わせ用）と`visible`（削除済み除外。表示・集計用）
+  の2つのビューを持つ。別タブでの変更は`storage`イベントで検知し再読込する。
+- **`tombstone-firestore-sync.ts`**: `createTombstoneFirestoreSync<T>(config)`。
+  `AuthService.user()`を`effect()`で監視し、ログイン時に
+  `apps/media_log/users/{uid}/{collectionName}/{id}`と双方向マージ（`deleted`はOR結合）。
+  以後の保存操作はfire-and-forget push、失敗分は`pendingPush`に保持し`online`イベントで再送する。
+- **`tombstone-sync.util.ts`**: `mergeByIdWithTombstone`（idで突き合わせてdeletedをOR結合）/
+  `stripUndefinedShallow`（Firestoreがundefinedを受け付けないための浅い除去）。
+
+新しいドメインデータを追加する際は、この2関数を対象の型でインスタンス化して束ねるだけで
+ローカル永続化+tombstone論理削除+Firestore双方向同期が揃う（下記`core/media`/`core/achievements`
+参照）。
+
+### `core/media/`（Work/Group/Unit）
+
+- **`media-store.service.ts`**: works/groups/unitsそれぞれに対して`createTombstoneCollectionStore`を
+  生成し束ねる薄いラッパー。固有ロジックはWork削除時に配下のGroup/Unitも連動してtombstone化する
+  カスケード削除のみ。
+- **`media-firestore-sync.service.ts`**: works/groups/unitsそれぞれに対して
+  `createTombstoneFirestoreSync`を生成し束ねる薄いラッパー。
 - **`media-repository.service.ts`**: 上記2つを束ねるファサード。`features/works`はこのサービスのみを
   inject する。
+
+### `core/achievements/`（Achievement）
+
+`achievements-store.service.ts` / `achievements-firestore-sync.service.ts`も同型のパターンで、
+単一コレクション（`achievements`）につき`createTombstoneCollectionStore`/
+`createTombstoneFirestoreSync`を1つずつ生成する。`achievements-repository.service.ts`が
+`features/achievements`向けのファサード。
 
 ```mermaid
 graph TD
     Works["features/works\n(WorksStateService)"]
     Repo["MediaRepositoryService (core/media)"]
-    Store["MediaStoreService\nLocalStorage CRUD"]
-    Sync["MediaFirestoreSyncService\n双方向同期"]
+    Store["MediaStoreService"]
+    Sync["MediaFirestoreSyncService"]
+    Achievements["features/achievements\n(AchievementsStateService)"]
+    AchRepo["AchievementsRepositoryService (core/achievements)"]
+    AchStore["AchievementsStoreService"]
+    AchSync["AchievementsFirestoreSyncService"]
+    CollectionStore["TombstoneCollectionStore\n(core/persistence)"]
+    FirestoreSync["TombstoneFirestoreSync\n(core/persistence)"]
     Auth["AuthService (user signal)"]
 
-    Works --> Repo
-    Repo --> Store
-    Repo --> Sync
-    Sync -->|user signalをeffect()で監視| Auth
-    Sync <--> Firestore[("apps/media_log/users/{uid}/works|groups|units")]
-    Store <--> LocalStorage[("LocalStorage")]
+    Works --> Repo --> Store --> CollectionStore
+    Repo --> Sync --> FirestoreSync
+    Achievements --> AchRepo --> AchStore --> CollectionStore
+    AchRepo --> AchSync --> FirestoreSync
+    FirestoreSync -->|user signalをeffect()で監視| Auth
+    FirestoreSync <--> Firestore[("apps/media_log/users/{uid}/{collection}")]
+    CollectionStore <--> LocalStorage[("LocalStorage")]
 ```
 
 ---

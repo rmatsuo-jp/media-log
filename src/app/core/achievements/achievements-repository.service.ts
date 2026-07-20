@@ -5,12 +5,9 @@
  */
 import { Injectable, inject } from '@angular/core';
 import { Achievement } from '@core/models/media.model';
+import { nowIso } from '@shared/utils/date.util';
 import { AchievementsFirestoreSyncService } from './achievements-firestore-sync.service';
 import { AchievementsStoreService } from './achievements-store.service';
-
-function nowIso(): string {
-  return new Date().toISOString();
-}
 
 @Injectable({ providedIn: 'root' })
 export class AchievementsRepositoryService {

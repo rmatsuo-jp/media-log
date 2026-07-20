@@ -1,5 +1,5 @@
 /**
- * @file 日時フォーマット用の純粋関数群。
+ * @file 日時フォーマット用の純粋関数群。nowIso()は各repositoryのcreatedAt/updatedAt採番で共用する。
  */
 
 // ── エクスポートファイル名用タイムスタンプ ──────────────────────────
@@ -12,6 +12,12 @@ export function formatTimestampForFilename(date: Date = new Date()): string {
   const hh = pad(date.getHours());
   const mi = pad(date.getMinutes());
   return `${yy}${mm}${dd}${hh}${mi}`;
+}
+
+// ── 現在時刻ISO文字列（各repositoryのcreatedAt/updatedAt採番で共用） ──────
+/** 現在時刻をISO文字列で返す。 */
+export function nowIso(): string {
+  return new Date().toISOString();
 }
 
 // ── 日付キー正規化（streak集計・カレンダー表示で共用） ───────────────
