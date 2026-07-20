@@ -54,11 +54,13 @@
                   <span class="want-mark">★</span>
                 }
                 @if (nextUnreadLabel(work); as label) {
-                  <app-badge class="next-unread-badge" variant="warning" [solid]="true"
-                    >{{ label }}</app-badge
-                  >
+                  <app-badge class="next-unread-badge" variant="warning" [solid]="true">{{
+                    label
+                  }}</app-badge>
                 } @else if (isFullyRead(work)) {
-                  <app-badge class="all-read-badge" variant="success" [solid]="true">既読</app-badge>
+                  <app-badge class="all-read-badge" variant="success" [solid]="true"
+                    >既読</app-badge
+                  >
                 }
               </span>
               <span class="work-title">{{ work.title }}</span>
