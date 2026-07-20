@@ -148,6 +148,18 @@
   }
 }
 
+.all-read-badge {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-success);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
 .want-mark {
   position: absolute;
   top: var(--space-1);

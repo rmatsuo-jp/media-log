@@ -76,6 +76,12 @@ export class WorksStateService {
     return undefined;
   }
 
+  // 作品配下に1件以上Unitがあり、かつ全て既読か。
+  isFullyRead(workId: string): boolean {
+    const units = this.groupsForWork(workId).flatMap((g) => this.unitsForGroup(g.id));
+    return units.length > 0 && units.every((u) => u.viewed);
+  }
+
   workById(id: string): Work | undefined {
     return this.works().find((w) => w.id === id);
   }

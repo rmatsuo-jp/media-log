@@ -5,7 +5,8 @@
  * 同一signalで兼用する（非永続のローカルsignal）。
  * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
  * 行えるメニュー（Modal+CoverTile）を開く。
- * 各カードには次に見るべき未読巻/話（WorksStateService.nextUnreadUnit）をバッジで表示する。
+ * 各カードには次に見るべき未読巻/話（WorksStateService.nextUnreadUnit）をバッジで表示し、
+ * 全巻既読（WorksStateService.isFullyRead）の場合は代わりに「既読」バッジを表示する。
  * 絞り込み後の作品数・巻/話数合計を表示し、ページサイズ選択＋前/次ページ切り替えでグリッド表示件数を制御する。
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
@@ -37,6 +38,10 @@ export class WorkList {
     const unit = this.state.nextUnreadUnit(work.id);
     if (!unit) return null;
     return work.mediaType === 'manga' ? `次: ${unit.number}巻` : `次: 第${unit.number}話`;
+  }
+
+  isFullyRead(work: Work): boolean {
+    return this.state.isFullyRead(work.id);
   }
 
   // ── マンガ/アニメ絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
