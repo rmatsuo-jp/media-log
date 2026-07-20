@@ -197,10 +197,7 @@
             <app-cover-tile
               [imageUrl]="search.coverUrlFor(candidate)"
               [label]="
-                candidate.title ??
-                (work.mediaType === 'manga'
-                  ? candidate.number + '巻'
-                  : '第' + candidate.number + '話')
+                work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話'
               "
               [selected]="isSelected(candidate.number)"
               size="sm"

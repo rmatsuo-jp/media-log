@@ -108,6 +108,65 @@ describe('GoogleBooksApiService', () => {
     ]);
   });
 
+  it('全角数字の巻数表記（１巻）でも巻数を抽出する', () => {
+    let result: unknown;
+    service.searchVolumes('ぼっち・ざ・ろっく！').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne((r) =>
+      r.urlWithParams.startsWith('https://www.googleapis.com/books/v1/volumes?'),
+    );
+    req.flush({
+      items: [
+        {
+          volumeInfo: {
+            title: 'ぼっち・ざ・ろっく！　１巻',
+            industryIdentifiers: [{ type: 'ISBN_13', identifier: '9784000000101' }],
+            imageLinks: { thumbnail: 'http://example.com/1.jpg' },
+          },
+        },
+      ],
+    });
+
+    expect(result).toEqual([
+      {
+        isbn13: '9784000000101',
+        isbn10: undefined,
+        volumeNumber: 1,
+        title: 'ぼっち・ざ・ろっく！　１巻',
+        coverImageUrl: 'https://example.com/1.jpg',
+      },
+    ]);
+  });
+
+  it('ISBN_13が無くISBN_10のみの場合は変換したisbn13を格納する', () => {
+    let result: unknown;
+    service.searchVolumes('鬼滅の刃').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne((r) =>
+      r.urlWithParams.startsWith('https://www.googleapis.com/books/v1/volumes?'),
+    );
+    req.flush({
+      items: [
+        {
+          volumeInfo: {
+            title: '鬼滅の刃 1',
+            industryIdentifiers: [{ type: 'ISBN_10', identifier: '4-06-535155-2' }],
+          },
+        },
+      ],
+    });
+
+    expect(result).toEqual([
+      {
+        isbn13: '9784065351550',
+        isbn10: '4065351552',
+        volumeNumber: 1,
+        title: '鬼滅の刃 1',
+        coverImageUrl: undefined,
+      },
+    ]);
+  });
+
   it('シリーズタイトルに一致しない候補は除外する', () => {
     let result: unknown;
     service.searchVolumes('鬼滅の刃').subscribe((r) => (result = r));

@@ -17,12 +17,19 @@
  * retry()後もエラーの場合は呼び出し側（manga-volume-lookup.service.ts）にエラーとして伝播させる。
  * 1リクエストあたりmaxResultsは40件が上限のため、totalItemsを見てstartIndexをずらした追加リクエストを
  * 並列発行し、MAX_ITEMS件までページングして取得する（長期連載シリーズで巻が欠落しないようにするため）。
+ * 巻数を含むタイトルが「１巻」のように全角数字で書かれていることがあり、正規表現の\dは全角数字にマッチ
+ * しないため、parseVolumeNumber()に渡す前にtoHalfWidthDigits()で半角に変換する（全角のまま解析すると
+ * 巻数抽出に失敗し、表紙画像を持つ候補が丸ごと除外されてしまう）。
+ * industryIdentifiersにISBN_13が無くISBN_10のみの場合は、isbn10ToIsbn13()で変換してisbn13に格納する
+ * （検査ディジットを再計算する決定的な変換）。これはopenBDへ渡せるISBNを増やすため（openBDはISBN指定の
+ * 一括取得のみでISBN-10を受け付けないことがある）。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, of, retry, switchMap } from 'rxjs';
 import { SettingsStoreService } from '@core/settings/settings-store.service';
 import { environment } from '../../../environments/environment';
+import { isbn10ToIsbn13, normalizeIsbn } from './isbn.util';
 
 const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
 const PAGE_SIZE = 40;
@@ -76,6 +83,10 @@ function normalize(title: string): string {
   return title.replace(/[\s　!-/:-@[-`{-~！-／：-＠［-｀｛-～]/g, '').toLowerCase();
 }
 
+export function toHalfWidthDigits(text: string): string {
+  return text.replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0));
+}
+
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -92,8 +103,10 @@ function matchFirst(text: string, patterns: RegExp[]): number | null {
 }
 
 function parseVolumeNumber(volumeInfo: GoogleBooksVolumeInfo, seriesTitle: string): number | null {
-  const text = [volumeInfo.title, volumeInfo.subtitle].filter(Boolean).join(' ');
-  const seriesMatch = text.match(new RegExp(escapeRegExp(seriesTitle), 'i'));
+  const text = toHalfWidthDigits(
+    [volumeInfo.title, volumeInfo.subtitle].filter(Boolean).join(' '),
+  );
+  const seriesMatch = text.match(new RegExp(escapeRegExp(toHalfWidthDigits(seriesTitle)), 'i'));
   if (seriesMatch?.index != null) {
     const remainder = text.slice(seriesMatch.index + seriesMatch[0].length);
     const number = matchFirst(remainder, PREFIX_VOLUME_PATTERNS);
@@ -158,8 +171,12 @@ export class GoogleBooksApiService {
       if (!normalize(info.title).includes(normalizedSeries)) continue;
       const volumeNumber = parseVolumeNumber(info, seriesTitle);
       if (volumeNumber == null) continue;
-      const isbn13 = info.industryIdentifiers?.find((i) => i.type === 'ISBN_13')?.identifier;
-      const isbn10 = info.industryIdentifiers?.find((i) => i.type === 'ISBN_10')?.identifier;
+      const rawIsbn13 = info.industryIdentifiers?.find((i) => i.type === 'ISBN_13')?.identifier;
+      const rawIsbn10 = info.industryIdentifiers?.find((i) => i.type === 'ISBN_10')?.identifier;
+      const isbn10 = rawIsbn10 ? normalizeIsbn(rawIsbn10) : undefined;
+      const isbn13 = rawIsbn13
+        ? normalizeIsbn(rawIsbn13)
+        : (isbn10 ? isbn10ToIsbn13(isbn10) : null) ?? undefined;
       matches.push({
         isbn13,
         isbn10,
