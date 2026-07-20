@@ -21,6 +21,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/works/wishlist/wishlist').then((m) => m.Wishlist),
   },
   {
+    path: 'achievements',
+    loadComponent: () =>
+      import('./features/achievements/achievements-list/achievements-list').then(
+        (m) => m.AchievementsList,
+      ),
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
   },

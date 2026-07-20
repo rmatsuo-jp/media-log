@@ -1,0 +1,30 @@
+<!-- @file 実績一覧ページテンプレート。カテゴリ見出し（.section-title 共通スタイル）ごとに
+     バッジカードをグリッド表示する。 -->
+<div class="page">
+  <h1 class="page-title">実績</h1>
+  <p class="hint">{{ unlockedCount() }} / {{ totalCount() }} 個の実績を解除済み</p>
+
+  @for (category of categories(); track category.metric) {
+    <h2 class="section-title">{{ category.title }}</h2>
+    <div class="achievement-grid">
+      @for (item of category.items; track item.definition.id) {
+        <div class="achievement-card" [class.unlocked]="item.unlocked">
+          <span class="achievement-icon">{{ item.definition.icon }}</span>
+          <div class="achievement-body">
+            <p class="achievement-title">{{ item.definition.title }}</p>
+            <p class="achievement-description">{{ item.definition.description }}</p>
+            @if (item.unlocked && item.unlockedAt) {
+              <p class="achievement-status status-unlocked">
+                {{ formatUnlockedAt(item.unlockedAt) }}
+              </p>
+            } @else {
+              <p class="achievement-status status-progress">
+                {{ item.current }} / {{ item.definition.threshold }}
+              </p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
