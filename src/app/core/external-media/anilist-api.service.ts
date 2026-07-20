@@ -5,9 +5,9 @@
  * searchWorksはmediaTypeに'both'を渡すと種別フィルタなしで検索し、結果ごとの実際の種別(m.type)を
  * 反映する。日本語タイトル(titleNative)・人気度(popularity)・スコア(averageScore)も併せて返す。
  * includeAdultがfalseの場合は成人向け作品(isAdult)を除外する。
- * GitHub Pages本番環境ではAngular Service Worker(ngsw-worker.js)がクロスオリジンの
- * fetchも傍受しCORSエラーとなる事象を確認したため、`ngsw-bypass`をリクエストヘッダー
- * として付与しSWをバイパスする。
+ * Angular Service Workerは既定でGETリクエストのみ傍受しPOSTには関与しないため
+ * （AniListはGraphQL POST）、MangaDex（GET）と異なりngsw-bypassヘッダーは不要。
+ * 一度付与してみたところプリフライトが増えCORSエラーを誘発したため付与しない。
  * AniList側の一時的な504等はretry()で吸収し、それでも失敗した場合はエラーとして
  * 呼び出し側（work-import-search.service.ts）に伝播させる。
  */
@@ -79,18 +79,10 @@ export class AnilistApiService {
       }
     `;
     return this.http
-      .post<AniListSearchResponse>(
-        ANILIST_ENDPOINT,
-        {
-          query: graphqlQuery,
-          variables: {
-            search: query,
-            type: anilistType,
-            isAdult: includeAdult ? undefined : false,
-          },
-        },
-        { headers: { 'ngsw-bypass': 'true' } },
-      )
+      .post<AniListSearchResponse>(ANILIST_ENDPOINT, {
+        query: graphqlQuery,
+        variables: { search: query, type: anilistType, isAdult: includeAdult ? undefined : false },
+      })
       .pipe(
         map((res) =>
           res.data.Page.media.map((m) => ({
@@ -121,14 +113,10 @@ export class AnilistApiService {
       }
     `;
     return this.http
-      .post<AniListEpisodesResponse>(
-        ANILIST_ENDPOINT,
-        {
-          query: graphqlQuery,
-          variables: { id: Number(externalId) },
-        },
-        { headers: { 'ngsw-bypass': 'true' } },
-      )
+      .post<AniListEpisodesResponse>(ANILIST_ENDPOINT, {
+        query: graphqlQuery,
+        variables: { id: Number(externalId) },
+      })
       .pipe(
         map((res) => {
           const episodes = res.data.Media?.streamingEpisodes ?? [];
