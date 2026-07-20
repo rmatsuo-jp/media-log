@@ -1,3 +1,10 @@
+## [0.7.3](https://github.com/rmatsuo-jp/media-log/compare/v0.7.2...v0.7.3) (2026-07-20)
+
+
+### Bug Fixes
+
+* 外部APIリクエストがService Workerに傍受されCORSエラーになる問題を修正 ([32d5a1f](https://github.com/rmatsuo-jp/media-log/commit/32d5a1f78a0d36408c65008eb017da56264708c6))
+
 ## [0.7.2](https://github.com/rmatsuo-jp/media-log/compare/v0.7.1...v0.7.2) (2026-07-20)
 
 
