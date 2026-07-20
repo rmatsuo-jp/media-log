@@ -1,7 +1,10 @@
 <!-- @file 作品詳細テンプレート。Group→Unitの階層表示、既読トグル・周回カウント・
      読みたいフラグの操作、グループ/Unit追加フォームを持つ。
      Unit一覧は画像中心のグリッドカードで、巻/話ラベルはw.mediaTypeで分岐。
-     表紙を右クリックすると代替候補（coverImageCandidates）を選べる表紙ピッカーを表示する。 -->
+     表紙を左クリックすると既読化＋周回数+1、右クリックするとコンテキストメニュー
+     （表紙候補が2件以上あれば「表紙を変更」、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
+     既読は表紙画像内の「既読」バッジ（app-badge）で表す。
+     最新既読日時（lastViewedAt）はview-countの隣にyyyy/MM/dd形式で表示する。 -->
 <div class="page">
   @if (work(); as w) {
     <div class="work-header">
@@ -37,25 +40,28 @@
         <div class="unit-grid">
           @for (unit of unitsForGroup(group.id); track unit.id) {
             <div class="unit-row">
-              <span class="unit-cover-wrap" (contextmenu)="onUnitCoverContextMenu($event, unit)">
+              <span
+                class="unit-cover-wrap"
+                (click)="onUnitCoverClick(unit)"
+                (contextmenu)="onUnitCoverContextMenu($event, unit)"
+              >
                 @if (unit.coverImageUrl) {
                   <img class="unit-cover" [src]="unit.coverImageUrl" alt="" loading="lazy" />
                 } @else {
                   <span class="unit-cover-placeholder">?</span>
                 }
+                @if (unit.viewed) {
+                  <app-badge class="unit-viewed-badge" variant="success">既読</app-badge>
+                }
               </span>
-              <label class="unit-checkbox">
-                <input type="checkbox" [checked]="unit.viewed" (change)="toggleUnitViewed(unit)" />
-                <span>{{
-                  w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話'
-                }}</span>
-              </label>
+              <span class="unit-number">{{
+                w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話'
+              }}</span>
               <div class="unit-actions">
                 <span class="view-count">{{ unit.viewCount }}回</span>
-                <button class="link-button" type="button" (click)="incrementViewCount(unit)">
-                  +1周
-                </button>
-                <button class="link-button" type="button" (click)="deleteUnit(unit)">削除</button>
+                @if (unit.lastViewedAt) {
+                  <span class="last-viewed-at">{{ unit.lastViewedAt | date: 'yyyy/MM/dd' }}</span>
+                }
               </div>
             </div>
           }
@@ -91,6 +97,31 @@
     </div>
   } @else {
     <p class="hint">作品が見つかりません。</p>
+  }
+
+  @if (contextMenu(); as menu) {
+    <div class="context-menu-overlay" (click)="closeContextMenu()" (contextmenu)="closeContextMenu(); $event.preventDefault()">
+      <div
+        class="context-menu"
+        [style.left.px]="menu.x"
+        [style.top.px]="menu.y"
+        (click)="$event.stopPropagation()"
+      >
+        @if ((menu.unit.coverImageCandidates?.length ?? 0) >= 2) {
+          <button class="context-menu-item" type="button" (click)="changeCoverFromMenu()">
+            表紙を変更
+          </button>
+        }
+        @if (menu.unit.viewCount > 0) {
+          <button class="context-menu-item" type="button" (click)="decrementViewCountFromMenu()">
+            周回数を-1
+          </button>
+        }
+        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">
+          削除
+        </button>
+      </div>
+    </div>
   }
 
   @if (coverPickerUnit(); as pickUnit) {

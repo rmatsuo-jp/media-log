@@ -2,20 +2,25 @@
  * @file 作品詳細ページ。Group→Unitの階層を表示し、既読トグル・周回カウント・
  * Group単位の「読みたい」フラグ・グループ/Unitの追加を行う。
  * Unitに外部API由来のcoverImageUrlがあれば表紙サムネイルを表示する。
- * coverImageCandidatesが2件以上あるUnitは表紙を右クリックすると表紙ピッカー（Modal+CoverTile）
- * を開き、代替表紙に切り替えられる。
+ * 表紙を左クリックすると既読化＋周回数+1、右クリックするとコンテキストメニュー
+ * （表紙候補が2件以上あれば「表紙を変更」、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
+ * 既読は表紙画像内の「既読」バッジ（app-badge）で表す（チェックボックスは使わない）。
+ * 最新既読日時（Unit.lastViewedAt）はunit-actions内にyyyy/MM/dd形式で表示する。
+ * 表紙変更はModal+CoverTileの表紙ピッカーで行う。
  */
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Group, Unit } from '@core/models/media.model';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
+import { Badge } from '@shared/ui/badge/badge';
 import { WorksStateService } from '../works-state.service';
 
 @Component({
   selector: 'app-work-detail',
-  imports: [Modal, CoverTile],
+  imports: [Modal, CoverTile, Badge, DatePipe],
   templateUrl: './work-detail.html',
   styleUrl: './work-detail.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,25 +88,45 @@ export class WorkDetail {
     this.setNewUnitNumber(group.id, '');
   }
 
-  toggleUnitViewed(unit: Unit) {
-    this.state.toggleUnitViewed(unit);
-  }
-
-  incrementViewCount(unit: Unit) {
-    this.state.incrementUnitViewCount(unit);
-  }
-
   deleteUnit(unit: Unit) {
     this.state.deleteUnit(unit.id);
   }
 
   protected coverPickerUnit = signal<Unit | null>(null);
+  protected contextMenu = signal<{ unit: Unit; x: number; y: number } | null>(null);
 
-  // 表紙候補が2件以上あるUnitのみピッカーを開く（0/1件なら標準の右クリックメニューに任せる）。
+  onUnitCoverClick(unit: Unit) {
+    this.state.incrementUnitViewCount(unit);
+  }
+
   onUnitCoverContextMenu(event: MouseEvent, unit: Unit) {
-    if ((unit.coverImageCandidates?.length ?? 0) < 2) return;
     event.preventDefault();
-    this.coverPickerUnit.set(unit);
+    this.contextMenu.set({ unit, x: event.clientX, y: event.clientY });
+  }
+
+  closeContextMenu() {
+    this.contextMenu.set(null);
+  }
+
+  changeCoverFromMenu() {
+    const menu = this.contextMenu();
+    if (!menu) return;
+    this.coverPickerUnit.set(menu.unit);
+    this.contextMenu.set(null);
+  }
+
+  decrementViewCountFromMenu() {
+    const menu = this.contextMenu();
+    if (!menu) return;
+    this.state.decrementUnitViewCount(menu.unit);
+    this.contextMenu.set(null);
+  }
+
+  deleteUnitFromMenu() {
+    const menu = this.contextMenu();
+    if (!menu) return;
+    this.deleteUnit(menu.unit);
+    this.contextMenu.set(null);
   }
 
   closeCoverPicker() {
