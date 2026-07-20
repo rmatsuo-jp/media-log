@@ -14,10 +14,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
-import { MediaType } from '@core/models/media.model';
+import { MediaTypeFilter } from '@core/models/media.model';
 import { ExternalUnitCandidate, ExternalWorkSearchResult } from './external-media.model';
 
 const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
+
+// AniList GraphQLのMediaType表現との相互変換（AniListが扱うのはMANGA/ANIMEのみ）
+const ANILIST_TYPE_BY_MEDIA_TYPE: Record<'manga' | 'anime', 'MANGA' | 'ANIME'> = {
+  manga: 'MANGA',
+  anime: 'ANIME',
+};
 
 interface AniListTitle {
   romaji: string | null;
@@ -58,11 +64,10 @@ export class AnilistApiService {
 
   searchWorks(
     query: string,
-    mediaType: MediaType | 'both',
+    mediaType: MediaTypeFilter,
     includeAdult = false,
   ): Observable<ExternalWorkSearchResult[]> {
-    const anilistType =
-      mediaType === 'both' ? undefined : mediaType === 'manga' ? 'MANGA' : 'ANIME';
+    const anilistType = mediaType === 'both' ? undefined : ANILIST_TYPE_BY_MEDIA_TYPE[mediaType];
     const graphqlQuery = `
       query ($search: String, $type: MediaType, $isAdult: Boolean) {
         Page(page: 1, perPage: 20) {

@@ -1,5 +1,6 @@
 /**
  * @file 作品(Work)/グループ(Group)/単位(Unit) の3階層データモデル。
+ * MediaTypeごとの表示メタデータ（ラベル・巻/話表記等）は media-type-meta.ts に分離している。
  * Work→Group→Unit は media type を問わず共通の形（movie は Group1件・Unit1件、
  * book は manga と同形として扱う想定）。Phase 2 では manga/anime のみ実装する。
  * 削除は物理削除せず deleted フラグ（tombstone）で表現し、Firestore同期でOR-mergeする。
@@ -13,7 +14,9 @@
  * 「いつ解除したか」のみを保存する。
  */
 
-export type MediaType = 'manga' | 'anime'; // 将来 'movie' | 'book' を追加
+export type MediaType = 'manga' | 'anime'; // 将来 'movie' | 'book' を追加（表示メタはmedia-type-meta.tsに追記）
+
+export type MediaTypeFilter = MediaType | 'both'; // 一覧・検索の種別絞り込み用（'both'=すべて）
 
 export interface Work {
   id: string;
