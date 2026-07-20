@@ -1,5 +1,5 @@
 /**
- * @file 外部API（AniList/MangaDex）から作品を検索し、巻/話数の表紙イラストを見ながら取り込むインラインパネル。
+ * @file 外部API（AniList/Google Books/openBD）から作品を検索し、巻/話数の表紙イラストを見ながら取り込むインラインパネル。
  * ①検索→タイル選択 ②巻/話数候補選択 ③取り込み、の3ステップ。作品一覧タブ内に常時表示する（モーダルは使わない）。
  * 検索条件・検索結果・候補取得ロジックはWorkImportSearchServiceに分離しており、このコンポーネントは
  * step/selectedNumbers/groupTitle等のUI選択状態と、取り込み確定（confirmImport）の橋渡しに専念する。

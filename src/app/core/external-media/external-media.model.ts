@@ -1,9 +1,9 @@
 /**
- * @file 外部API（AniList/MangaDex）から取得する作品検索結果・巻/話数候補のDTO型。
+ * @file 外部API（AniList/Google Books/openBD）から取得する作品検索結果・巻/話数候補のDTO型。
  */
 import { MediaType } from '@core/models/media.model';
 
-export type ExternalSource = 'anilist' | 'mangadex';
+export type ExternalSource = 'anilist';
 
 export interface ExternalWorkSearchResult {
   mediaType: MediaType;
@@ -16,8 +16,6 @@ export interface ExternalWorkSearchResult {
   format?: string;
   averageScore?: number;
   popularity?: number;
-  /** MangaDex検索結果のみ: attributes.linksに含まれるAniListメディアID。作品とのID照合に使う。 */
-  anilistId?: string;
 }
 
 export interface ExternalUnitCandidate {

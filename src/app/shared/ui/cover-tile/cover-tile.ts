@@ -1,6 +1,6 @@
 /**
  * @file 表紙イラスト（作品・巻/話数）をタイル状に表示する共通コンポーネント。
- * 外部API連携（AniList/MangaDex）で取得した画像を想定するが、imageUrl未指定時はプレースホルダーを表示する。
+ * 外部API連携（AniList/Google Books/openBD）で取得した画像を想定するが、imageUrl未指定時はプレースホルダーを表示する。
  */
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 

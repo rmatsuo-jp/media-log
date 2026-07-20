@@ -1,29 +1,33 @@
 /**
- * @file 外部API（AniList/MangaDex）による作品検索・巻/話数候補取得のロジックを保持するサービス。
+ * @file 外部API（AniList/Google Books+openBD）による作品検索・巻/話数候補取得のロジックを保持するサービス。
  * work-import.tsのUI状態（step, selectedNumbers, groupTitle等）とは分離し、検索条件（query/mediaType/
  * includeAdult/titleLang/sortBy/page）と検索結果、候補取得結果（candidates/numberFilter/variantIndexByNumber）
  * をsignalで保持する。query/mediaType/includeAdultの変更はtoObservable()経由でdebounceTime(400ms)し、
  * トリム後2文字未満でなければ自動検索する。実処理はperformSearch()に集約し、「検索」ボタン/Enterキーによる
- * 即時検索（search()）と共通化している。マンガの巻取得はMangaDexのタイトル検索結果をそのまま先頭採用せず、
- * attributes.links.alで返るAniListメディアIDと選択中作品のexternalIdを突き合わせ、一致した候補のみ採用する
- * （同名・類似タイトル作品の巻データ誤取り込みを防ぐ）。一致がなければ巻候補は0件になる。
+ * 即時検索（search()）と共通化している。マンガの巻取得はAniListの検索結果の日本語タイトル（titleNative。
+ * 未取得時のみromaji/english表記のtitleにフォールバック）をMangaVolumeLookupService（Google Books検索→
+ * openBD補完）に渡す。ローマ字/英語タイトル（titleのみ）で検索すると、Google Books側で英語翻訳版
+ * （巻数の刊行が原作より遅れている）がヒットしてしまい、巻タイトルが英語表示になったり高い巻数が
+ * 欠落したりする不具合があったため、日本語タイトル優先に変更した。AniListメディアIDのような相互リンクを
+ * 持たないため、タイトル文字列の一致のみに依存し、同名・類似タイトル作品の巻データ誤取り込みのリスクは
+ * MangaDex時代より高い（詳細はdocs/external-media-integration.md参照）。
  * 書籍・映画等の将来的なメディア種別拡張時も、このサービスを再利用/差し替えできるようにコンポーネントから
  * 独立させている。
- * loadCandidatesFor()はAPI呼び出し失敗時（外部APIの一時的な504等、AniList/MangaDex側のクライアントで
- * retry済みでも解消しなかった場合）にcandidatesError signalへメッセージを設定し、「該当作品なし（0件）」
+ * loadCandidatesFor()はAPI呼び出し失敗時（外部APIの一時的な504等、各クライアントでretry済みでも
+ * 解消しなかった場合）にcandidatesError signalへメッセージを設定し、「該当作品なし（0件）」
  * と区別する。UI側はcandidatesErrorを見て再試行ボタンを出せるよう、直近のloadCandidatesFor呼び出しを
  * retryLastLoadCandidates()で再実行できるようにしている。
  */
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { combineLatest, debounceTime, distinctUntilChanged } from 'rxjs';
 import { MediaType } from '@core/models/media.model';
 import {
   ExternalUnitCandidate,
   ExternalWorkSearchResult,
 } from '@core/external-media/external-media.model';
 import { AnilistApiService } from '@core/external-media/anilist-api.service';
-import { MangadexApiService } from '@core/external-media/mangadex-api.service';
+import { MangaVolumeLookupService } from '@core/external-media/manga-volume-lookup.service';
 import { WorkImportSettingsService } from './work-import-settings.service';
 
 export type NumberFilter = 'all' | 'integer' | 'fractional';
@@ -36,7 +40,7 @@ const PAGE_SIZE = 10;
 @Injectable()
 export class WorkImportSearchService {
   private anilist = inject(AnilistApiService);
-  private mangadex = inject(MangadexApiService);
+  private mangaVolumeLookup = inject(MangaVolumeLookupService);
   private importSettings = inject(WorkImportSettingsService);
 
   mediaType = signal<MediaTypeFilter>('manga');
@@ -164,12 +168,7 @@ export class WorkImportSearchService {
     const candidates$ =
       result.mediaType === 'anime'
         ? this.anilist.getAnimeEpisodes(result.externalId)
-        : this.mangadex.searchManga(result.title).pipe(
-            switchMap((matches) => {
-              const match = matches.find((m) => m.anilistId === result.externalId);
-              return match ? this.mangadex.getVolumes(match.externalId) : of([]);
-            }),
-          );
+        : this.mangaVolumeLookup.getVolumes(result.titleNative ?? result.title);
 
     candidates$.subscribe({
       next: (candidates) => {

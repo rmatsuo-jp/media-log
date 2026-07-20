@@ -1,9 +1,11 @@
 /**
- * @file 設定ページ。テーマ・法的情報導線・GitHubリポジトリ導線・バージョン情報・アカウント（Google SSO）を持つ。
- * テーマは操作した時点で即時保存する（settings signal は常に「保存済みの真値」）。
+ * @file 設定ページ。テーマ・Google Books APIキー・法的情報導線・GitHubリポジトリ導線・バージョン情報・
+ * アカウント（Google SSO）を持つ。テーマは操作した時点で即時保存する（settings signal は常に
+ * 「保存済みの真値」）。Google Books APIキーは入力欄の一時値（apiKeyInput）を保存ボタン押下で
+ * 初めて永続化する（テーマとは異なり誤操作防止のため即時保存にしない）。
  */
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AppSettings, SettingsStoreService } from '@core/settings/settings-store.service';
 import { APP_VERSION, RELEASE_DATE } from '../../../version';
@@ -38,6 +40,11 @@ export class Settings {
 
   // ── 状態管理（signal） ────────────────────────────────────────────
   settings = signal<AppSettings>(this.settingsStore.getSettings());
+
+  // ── Google Books APIキー（保存ボタン押下まで反映しない一時値） ──────
+  apiKeyInput = signal(this.settingsStore.getSettings().googleBooksApiKey);
+  showApiKey = signal(false);
+  hasSavedApiKey = computed(() => !!this.settings().googleBooksApiKey);
 
   constructor() {
     this.http.get('CHANGELOG.md', { responseType: 'text' }).subscribe({
@@ -76,5 +83,21 @@ export class Settings {
   private persist(next: AppSettings) {
     this.settings.set(next);
     this.settingsStore.saveSettings(next);
+  }
+
+  // ── Google Books APIキー ──────────────────────────────────────────
+  toggleShowApiKey(): void {
+    this.showApiKey.update((v) => !v);
+  }
+
+  saveApiKey(): void {
+    const googleBooksApiKey = this.apiKeyInput().trim();
+    this.apiKeyInput.set(googleBooksApiKey);
+    this.persist({ ...this.settingsStore.getSettings(), googleBooksApiKey });
+  }
+
+  clearApiKey(): void {
+    this.apiKeyInput.set('');
+    this.persist({ ...this.settingsStore.getSettings(), googleBooksApiKey: '' });
   }
 }

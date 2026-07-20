@@ -16,11 +16,11 @@
 ## 確認待ち
 
 - **ブラウザでの実動作確認**: Phase 2実装時はブラウザ自動操作ツールが利用できず、実際のクリック操作によるE2E確認は未実施。ユーザーによる手動確認待ち。
-- **外部API連携（AniList/MangaDex）の実動作確認**: `core/external-media/`に AniList GraphQL API（作品検索・シリーズ表紙・アニメの話数サムネイル）と MangaDex API（マンガの巻ごとの表紙）を実装し、`features/works/work-import/`のモーダルから検索→タイル選択→巻/話数選択→取り込みができるようにした（`work-list`画面の「外部検索から追加」ボタンから起動）。単体テストは通過済みだが、ブラウザ自動操作ツールが利用できず実際のAPI疎通・E2E確認は未実施。ユーザーによる手動確認待ち。
+- **外部API連携（AniList/Google Books/openBD）の実動作確認**: `core/external-media/`に AniList GraphQL API（作品検索・シリーズ表紙・アニメの話数サムネイル）と Google Books API+openBD（マンガの巻ごとの表紙・書誌情報）を実装し、`features/works/work-import/`のモーダルから検索→タイル選択→巻/話数選択→取り込みができるようにした（`work-list`画面の「外部検索から追加」ボタンから起動）。単体テストは通過済みだが、ブラウザ自動操作ツールが利用できず実際のAPI疎通・E2E確認は未実施。ユーザーによる手動確認待ち。
 
 ## 既知の問題
 
-- **MangaDex検索でGitHub Pages上のみCORSエラー（原因判明・暫定対応済み）**: `api.mangadex.org/manga`検索がGitHub Pages上でのみ`CORSエラー`になる事象を調査した結果、レスポンスは200 OKだが`Access-Control-Allow-Origin`ヘッダーが欠落しており、`X-Cache: HIT`/`s-maxage=2592000`（30日）から、MangaDex側CDN（Cloudflare）がACAOヘッダー欠落のレスポンスを最大30日キャッシュしてしまう汚染バグと判明。アプリ側のバグではない。暫定対応として`searchManga`のクエリに`order[relevance]=desc`を追加しキャッシュキーをずらす回避策を実施（`mangadex-api.service.ts`）。汚染された別クエリで再発した場合は同様にクエリへ軽微な変化（MangaDexが正式サポートするパラメータに限る）を加えて回避する。
+（MangaDex検索でのCORSエラー問題は、マンガの巻データ取得元をGoogle Books+openBDへ置き換えたことで解消・関連コード削除済み。）
 
 （2026-07-19: CIのカバレッジ閾値未達は`media-firestore-sync.service.spec.ts`・`media-repository.service.spec.ts`追加、および`works-state.service.spec.ts`拡充により解消。全体でlines 88.23%/functions 82.44%/statements 85.61%/branches 70.13%まで改善。）
 

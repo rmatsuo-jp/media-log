@@ -24,6 +24,35 @@
     </div>
   </div>
 
+  <!-- ── Google Books APIキー（マンガの巻情報取得に使用） ── -->
+  <div class="form-group">
+    <label class="label">Google Books APIキー</label>
+    <p class="hint">
+      マンガの巻情報取得（Google Books API）に使用します。
+      <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
+        >Google Cloud Console</a
+      >でBooks APIを有効化し、HTTPリファラー制限付きのキーを発行してください。
+      入力したキーはこの端末のlocalStorageにのみ保存されます。
+    </p>
+    <div class="api-key-row">
+      <input
+        class="text-input"
+        [type]="showApiKey() ? 'text' : 'password'"
+        [value]="apiKeyInput()"
+        (input)="apiKeyInput.set($any($event.target).value)"
+        autocomplete="off"
+        placeholder="AIza..."
+      />
+      <button class="btn-secondary" type="button" (click)="toggleShowApiKey()">
+        {{ showApiKey() ? '隠す' : '表示' }}
+      </button>
+      <button class="btn-primary" type="button" (click)="saveApiKey()">保存</button>
+      @if (hasSavedApiKey()) {
+        <button class="btn-secondary" type="button" (click)="clearApiKey()">削除</button>
+      }
+    </div>
+  </div>
+
   <!-- ── 法的情報（データの送信先・利用条件・免責事項） ── -->
   <div class="form-group">
     <label class="label">法的情報</label>

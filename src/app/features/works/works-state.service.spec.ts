@@ -217,7 +217,7 @@ describe('WorksStateService', () => {
       const { state, repoStub } = setupWithRepoSpy();
       state.importWorkFromExternal({
         mediaType: 'manga',
-        externalSource: 'mangadex',
+        externalSource: 'anilist',
         externalId: 'manga-1',
         title: '鬼滅の刃',
         coverImageUrl: 'https://example.com/cover.jpg',
@@ -226,7 +226,7 @@ describe('WorksStateService', () => {
         title: '鬼滅の刃',
         mediaType: 'manga',
         wantToConsume: false,
-        externalSource: 'mangadex',
+        externalSource: 'anilist',
         externalId: 'manga-1',
         coverImageUrl: 'https://example.com/cover.jpg',
       });

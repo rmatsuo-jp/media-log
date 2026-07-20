@@ -3,6 +3,16 @@
   gap: 0.5rem;
 }
 
+.api-key-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .text-input {
+    flex: 1 1 12rem;
+  }
+}
+
 .release-notes {
   margin-top: 0.5rem;
 

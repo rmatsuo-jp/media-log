@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { AnilistApiService } from '@core/external-media/anilist-api.service';
-import { MangadexApiService } from '@core/external-media/mangadex-api.service';
+import { MangaVolumeLookupService } from '@core/external-media/manga-volume-lookup.service';
 import { WorkImportSettingsService } from './work-import-settings.service';
 import { WorkImportSearchService } from './work-import-search.service';
 
@@ -13,7 +13,7 @@ describe('WorkImportSearchService', () => {
     searchWorks: ReturnType<typeof vi.fn>;
     getAnimeEpisodes: ReturnType<typeof vi.fn>;
   };
-  let mangadex: { searchManga: ReturnType<typeof vi.fn>; getVolumes: ReturnType<typeof vi.fn> };
+  let mangaVolumeLookup: { getVolumes: ReturnType<typeof vi.fn> };
 
   const result: ExternalWorkSearchResult = {
     mediaType: 'manga',
@@ -27,13 +27,13 @@ describe('WorkImportSearchService', () => {
 
   beforeEach(() => {
     anilist = { searchWorks: vi.fn().mockReturnValue(of([result])), getAnimeEpisodes: vi.fn() };
-    mangadex = { searchManga: vi.fn(), getVolumes: vi.fn() };
+    mangaVolumeLookup = { getVolumes: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
         WorkImportSearchService,
         { provide: AnilistApiService, useValue: anilist },
-        { provide: MangadexApiService, useValue: mangadex },
+        { provide: MangaVolumeLookupService, useValue: mangaVolumeLookup },
         WorkImportSettingsService,
       ],
     });
@@ -71,57 +71,37 @@ describe('WorkImportSearchService', () => {
     expect(service.sortedResults().map((r) => r.externalId)).toEqual(['2', '1']);
   });
 
-  it('loadCandidatesForはmangaの場合MangaDexをAniList IDで突き合わせて巻を取得する', () => {
-    mangadex.searchManga.mockReturnValue(
-      of([
-        {
-          mediaType: 'manga',
-          externalSource: 'mangadex',
-          externalId: 'md-1',
-          title: 'x',
-          anilistId: '1',
-        },
-        {
-          mediaType: 'manga',
-          externalSource: 'mangadex',
-          externalId: 'md-2',
-          title: 'y',
-          anilistId: '999',
-        },
-      ]),
-    );
-    mangadex.getVolumes.mockReturnValue(of([{ number: 1, coverImageUrl: 'a.jpg' }]));
+  it('loadCandidatesForはmangaの場合MangaVolumeLookupServiceに日本語タイトル(titleNative)を渡して巻を取得する', () => {
+    mangaVolumeLookup.getVolumes.mockReturnValue(of([{ number: 1, coverImageUrl: 'a.jpg' }]));
 
     let loaded: unknown;
     service.loadCandidatesFor(result, (candidates) => (loaded = candidates));
 
-    expect(mangadex.getVolumes).toHaveBeenCalledWith('md-1');
+    expect(mangaVolumeLookup.getVolumes).toHaveBeenCalledWith('テスト作品');
     expect(loaded).toEqual([{ number: 1, coverImageUrl: 'a.jpg' }]);
     expect(service.candidates()).toEqual([{ number: 1, coverImageUrl: 'a.jpg' }]);
   });
 
-  it('AniList IDが一致しない場合は巻候補を0件にする', () => {
-    mangadex.searchManga.mockReturnValue(
-      of([
-        {
-          mediaType: 'manga',
-          externalSource: 'mangadex',
-          externalId: 'md-2',
-          title: 'y',
-          anilistId: '999',
-        },
-      ]),
-    );
+  it('loadCandidatesForはtitleNativeが無い場合titleにフォールバックする', () => {
+    mangaVolumeLookup.getVolumes.mockReturnValue(of([]));
+    const resultWithoutNative = { ...result, titleNative: undefined };
+
+    service.loadCandidatesFor(resultWithoutNative, () => {});
+
+    expect(mangaVolumeLookup.getVolumes).toHaveBeenCalledWith('Test Work');
+  });
+
+  it('候補が見つからない場合は巻候補を0件にする', () => {
+    mangaVolumeLookup.getVolumes.mockReturnValue(of([]));
 
     let loaded: unknown;
     service.loadCandidatesFor(result, (candidates) => (loaded = candidates));
 
-    expect(mangadex.getVolumes).not.toHaveBeenCalled();
     expect(loaded).toEqual([]);
   });
 
   it('外部APIがエラーの場合はcandidatesErrorを設定し「該当なし」とは区別する', () => {
-    mangadex.searchManga.mockReturnValue(throwError(() => new Error('504')));
+    mangaVolumeLookup.getVolumes.mockReturnValue(throwError(() => new Error('504')));
 
     let loaded: unknown;
     service.loadCandidatesFor(result, (candidates) => (loaded = candidates));
@@ -132,27 +112,16 @@ describe('WorkImportSearchService', () => {
   });
 
   it('retryLastLoadCandidatesは直近のloadCandidatesForを再実行する', () => {
-    mangadex.searchManga.mockReturnValueOnce(throwError(() => new Error('504')));
+    mangaVolumeLookup.getVolumes.mockReturnValueOnce(throwError(() => new Error('504')));
     let loaded: unknown;
     service.loadCandidatesFor(result, (candidates) => (loaded = candidates));
     expect(service.candidatesError()).not.toBeNull();
 
-    mangadex.searchManga.mockReturnValue(
-      of([
-        {
-          mediaType: 'manga',
-          externalSource: 'mangadex',
-          externalId: 'md-1',
-          title: 'x',
-          anilistId: '1',
-        },
-      ]),
-    );
-    mangadex.getVolumes.mockReturnValue(of([{ number: 1, coverImageUrl: 'a.jpg' }]));
+    mangaVolumeLookup.getVolumes.mockReturnValue(of([{ number: 1, coverImageUrl: 'a.jpg' }]));
 
     service.retryLastLoadCandidates();
 
-    expect(mangadex.searchManga).toHaveBeenCalledTimes(2);
+    expect(mangaVolumeLookup.getVolumes).toHaveBeenCalledTimes(2);
     expect(service.candidatesError()).toBeNull();
     expect(loaded).toEqual([{ number: 1, coverImageUrl: 'a.jpg' }]);
   });
