@@ -1,3 +1,10 @@
+## [0.7.5](https://github.com/rmatsuo-jp/media-log/compare/v0.7.4...v0.7.5) (2026-07-20)
+
+
+### Bug Fixes
+
+* MangaDexリクエストからngsw-bypassヘッダーを削除 ([a18cdeb](https://github.com/rmatsuo-jp/media-log/commit/a18cdeb0f036984dd0c118c4504d4a66e8bbceb2))
+
 ## [0.7.4](https://github.com/rmatsuo-jp/media-log/compare/v0.7.3...v0.7.4) (2026-07-20)
 
 
