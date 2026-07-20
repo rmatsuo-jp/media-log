@@ -4,6 +4,8 @@
  * （CLAUDE.mdの「状態はfeature内の{feature}-state.serviceに集約する」パターン）。
  * 外部API（AniList/MangaDex）検索結果からの作品・巻/話数取り込みもここに集約する。
  * 作品タイトルは日本語（titleNative）を優先して保存する（アプリ全体で日本語表記を基本とする）。
+ * nextUnreadUnit()はGroup.order→Unit.numberの順で最初の未読Unitを返す（次に見るべき巻/話の算出）。
+ * unitCountForWork()は作品配下の全Unit数（巻/話数の合計）を返す。
  */
 import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
@@ -65,8 +67,27 @@ export class WorksStateService {
       .sort((a, b) => a.number - b.number);
   }
 
+  // Group.order→Unit.numberの順で最初に見つかった未読Unit（「次に見るべき」巻/話）。
+  nextUnreadUnit(workId: string): Unit | undefined {
+    for (const group of this.groupsForWork(workId)) {
+      const unread = this.unitsForGroup(group.id).find((u) => !u.viewed);
+      if (unread) return unread;
+    }
+    return undefined;
+  }
+
+  // 作品配下に1件以上Unitがあり、かつ全て既読か。
+  isFullyRead(workId: string): boolean {
+    const units = this.groupsForWork(workId).flatMap((g) => this.unitsForGroup(g.id));
+    return units.length > 0 && units.every((u) => u.viewed);
+  }
+
   workById(id: string): Work | undefined {
     return this.works().find((w) => w.id === id);
+  }
+
+  unitCountForWork(workId: string): number {
+    return this.units().filter((u) => u.workId === workId).length;
   }
 
   // ── 書き込み系（すべてrepositoryへ委譲、コンポーネントは薄く保つ） ──

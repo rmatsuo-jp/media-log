@@ -4,7 +4,8 @@
      表紙を左クリックすると既読化＋周回数+1、右クリックするとコンテキストメニュー
      （表紙候補が2件以上あれば「表紙を変更」、周回数>0なら「周回数を-1」、常に「削除」）を表示する。
      既読は表紙画像内の「既読」バッジ（app-badge）で表す。
-     最新既読日時（lastViewedAt）はview-countの隣にyyyy/MM/dd形式で表示する。 -->
+     最新既読日時（lastViewedAt）はview-countの隣にyyyy/MM/dd形式で表示する。
+     次に見るべき未読Unit（nextUnreadUnitId）はunit-rowにnext-unreadクラスと「次はこれ」バッジで強調する。 -->
 <div class="page">
   @if (work(); as w) {
     <div class="work-header">
@@ -39,7 +40,7 @@
 
         <div class="unit-grid">
           @for (unit of unitsForGroup(group.id); track unit.id) {
-            <div class="unit-row">
+            <div class="unit-row" [class.next-unread]="unit.id === nextUnreadUnitId()">
               <span
                 class="unit-cover-wrap"
                 (click)="onUnitCoverClick(unit)"
@@ -52,6 +53,8 @@
                 }
                 @if (unit.viewed) {
                   <app-badge class="unit-viewed-badge" variant="success">既読</app-badge>
+                } @else if (unit.id === nextUnreadUnitId()) {
+                  <app-badge class="unit-next-badge" variant="warning">次はこれ</app-badge>
                 }
               </span>
               <span class="unit-number">{{
@@ -100,7 +103,11 @@
   }
 
   @if (contextMenu(); as menu) {
-    <div class="context-menu-overlay" (click)="closeContextMenu()" (contextmenu)="closeContextMenu(); $event.preventDefault()">
+    <div
+      class="context-menu-overlay"
+      (click)="closeContextMenu()"
+      (contextmenu)="closeContextMenu(); $event.preventDefault()"
+    >
       <div
         class="context-menu"
         [style.left.px]="menu.x"
@@ -117,9 +124,7 @@
             周回数を-1
           </button>
         }
-        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">
-          削除
-        </button>
+        <button class="context-menu-item" type="button" (click)="deleteUnitFromMenu()">削除</button>
       </div>
     </div>
   }

@@ -7,22 +7,31 @@
  * （numberFilter）はサービス側のsignalを参照する。
  * 詳細設定（<details>）内は`[manualAdd]`属性でng-content投影可能にし、呼び出し元（AddWorkForm）の
  * 手動タイトル追加フォームを同じ詳細設定に統合表示する。
+ * mediaType inputは呼び出し元（work-list）のトグル値を受け取り、effectでsearch.mediaTypeへ同期する
+ * （自前のトグルUIは持たない）。
  */
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { Work } from '@core/models/media.model';
 import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
-import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
-import { WorkImportSearchService } from './work-import-search.service';
+import { MediaTypeFilter, WorkImportSearchService } from './work-import-search.service';
 
 type Step = 'search' | 'candidates';
 
 @Component({
   selector: 'app-work-import',
-  imports: [CoverTile, Spinner, Badge, MediaTypeToggle],
+  imports: [CoverTile, Spinner, Badge],
   providers: [WorkImportSearchService],
   templateUrl: './work-import.html',
   styleUrl: './work-import.scss',
@@ -32,12 +41,11 @@ export class WorkImport {
   private state = inject(WorksStateService);
   protected search = inject(WorkImportSearchService);
 
-  // ── マンガ/アニメ/両方絞り込み（共通トグル用） ──
-  protected readonly mediaTypeOptions: MediaTypeToggleOption[] = [
-    { value: 'both', label: 'すべて' },
-    { value: 'manga', label: 'マンガ' },
-    { value: 'anime', label: 'アニメ' },
-  ];
+  mediaType = input.required<MediaTypeFilter>();
+
+  constructor() {
+    effect(() => this.search.mediaType.set(this.mediaType()));
+  }
 
   imported = output<Work>();
 

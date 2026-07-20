@@ -1,37 +1,94 @@
-<!-- @file 作品一覧テンプレート。上部に共通の追加フォーム（app-add-work-form）、
-     マンガ/アニメ/すべての絞り込みトグル、下部に作品カードを画像優先のグリッドで並べる（画像下部にタイトル）。
+<!-- @file 作品一覧テンプレート。タイトル右にマンガ/アニメ/すべての絞り込みトグルを配置し、
+     追加フォーム（app-add-work-form）の検索絞り込みと作品グリッド表示絞り込みを兼用する。
+     追加フォームと作品グリッドはそれぞれ.cardで囲み、領域を視覚的に分離する。
      読みたいリストは独立ページ（wishlist）に分離済み。
-     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。 -->
+     作品カバーを右クリックすると表紙候補選択＋削除のメニュー（Modal+CoverTile）を表示する。
+     未読があるカードには「次: n巻/第n話」バッジ（nextUnreadLabel）を、全巻既読のカードには
+     「既読」バッジ（isFullyRead）を表示する。
+     件数表示（作品数・巻/話数合計）とページング（表示件数選択・前/次ページ）をグリッド周辺に配置する。 -->
 <div class="page">
-  <h1 class="page-title">作品</h1>
+  <div class="page-header">
+    <h1 class="page-title">作品</h1>
+    <app-media-type-toggle
+      [options]="mediaTypeFilterOptions"
+      [value]="mediaTypeFilter()"
+      (valueChange)="onMediaTypeFilterChange($any($event))"
+    />
+  </div>
 
-  <app-add-work-form />
+  <div class="card add-section">
+    <app-add-work-form [mediaType]="mediaTypeFilter()" />
+  </div>
 
-  <app-media-type-toggle [options]="mediaTypeFilterOptions" [(value)]="mediaTypeFilter" />
+  <div class="card work-section">
+    @if (filteredWorks().length === 0) {
+      <p class="hint">まだ作品が登録されていません。</p>
+    } @else {
+      <div class="work-summary">
+        作品 {{ filteredWorks().length }}件 / 全 {{ totalUnitCount() }}巻・話
+      </div>
+    }
+    <div class="work-grid">
+      @for (work of pagedWorks(); track work.id) {
+        <a class="work-card" [routerLink]="['/works', work.id]">
+          <span class="work-cover-wrap" (contextmenu)="onWorkCoverContextMenu($event, work)">
+            @if (work.coverImageUrl) {
+              <img
+                class="work-cover"
+                [src]="work.coverImageUrl"
+                [alt]="work.title"
+                loading="lazy"
+              />
+            } @else {
+              <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
+            }
+            <app-badge
+              class="work-badge"
+              [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
+              >{{ mediaTypeLabel(work.mediaType) }}</app-badge
+            >
+            @if (work.wantToConsume) {
+              <span class="want-mark">★</span>
+            }
+            @if (nextUnreadLabel(work); as label) {
+              <app-badge class="next-unread-badge" variant="warning">{{ label }}</app-badge>
+            } @else if (isFullyRead(work)) {
+              <app-badge class="all-read-badge" variant="success">既読</app-badge>
+            }
+          </span>
+          <span class="work-title">{{ work.title }}</span>
+        </a>
+      }
+    </div>
 
-  @if (filteredWorks().length === 0) {
-    <p class="hint">まだ作品が登録されていません。</p>
-  }
-  <div class="work-grid">
-    @for (work of filteredWorks(); track work.id) {
-      <a class="work-card" [routerLink]="['/works', work.id]">
-        <span class="work-cover-wrap" (contextmenu)="onWorkCoverContextMenu($event, work)">
-          @if (work.coverImageUrl) {
-            <img class="work-cover" [src]="work.coverImageUrl" [alt]="work.title" loading="lazy" />
-          } @else {
-            <span class="work-cover-placeholder">{{ work.title.slice(0, 1) }}</span>
-          }
-          <app-badge
-            class="work-badge"
-            [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
-            >{{ mediaTypeLabel(work.mediaType) }}</app-badge
-          >
-          @if (work.wantToConsume) {
-            <span class="want-mark">★</span>
-          }
-        </span>
-        <span class="work-title">{{ work.title }}</span>
-      </a>
+    @if (totalPages() > 1) {
+      <div class="pagination-bar">
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="currentPage() === 1"
+          (click)="goToPrevPage()"
+        >
+          前へ
+        </button>
+        <span class="pagination-status">{{ currentPage() }} / {{ totalPages() }}</span>
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="currentPage() === totalPages()"
+          (click)="goToNextPage()"
+        >
+          次へ
+        </button>
+        <label class="page-size-select">
+          表示件数:
+          <select [value]="pageSize()" (change)="onPageSizeChange(+$any($event.target).value)">
+            @for (size of pageSizeOptions; track size) {
+              <option [value]="size">{{ size }}件</option>
+            }
+          </select>
+        </label>
+      </div>
     }
   </div>
 

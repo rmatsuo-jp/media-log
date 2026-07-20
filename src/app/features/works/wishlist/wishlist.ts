@@ -9,7 +9,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { Badge } from '@shared/ui/badge/badge';
 import { MediaType } from '@core/models/media.model';
-import { MediaTypeToggle, MediaTypeToggleOption } from '@shared/ui/media-type-toggle/media-type-toggle';
+import {
+  MediaTypeToggle,
+  MediaTypeToggleOption,
+} from '@shared/ui/media-type-toggle/media-type-toggle';
+import { MediaTypeFilter } from '../work-import/work-import-search.service';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
 
@@ -27,17 +31,17 @@ export class Wishlist {
     return type === 'manga' ? 'マンガ' : 'アニメ';
   }
 
-  // ── マンガ/アニメ絞り込み（非永続） ──
+  // ── マンガ/アニメ絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
   protected readonly mediaTypeFilterOptions: MediaTypeToggleOption[] = [
-    { value: 'all', label: 'すべて' },
     { value: 'manga', label: 'マンガ' },
     { value: 'anime', label: 'アニメ' },
+    { value: 'both', label: 'すべて' },
   ];
-  protected mediaTypeFilter = signal<MediaType | 'all'>('all');
+  protected mediaTypeFilter = signal<MediaTypeFilter>('manga');
 
   protected filteredEntries = computed(() => {
     const filter = this.mediaTypeFilter();
     const entries = this.state.wantToConsumeEntries();
-    return filter === 'all' ? entries : entries.filter((entry) => entry.work.mediaType === filter);
+    return filter === 'both' ? entries : entries.filter((entry) => entry.work.mediaType === filter);
   });
 }

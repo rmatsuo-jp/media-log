@@ -1,3 +1,56 @@
+// ── タイトルとマンガ/アニメ絞り込みトグルを横並びに配置 ──
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .page-title {
+    margin: 0;
+  }
+}
+
+// ── 追加フォームと作品グリッドの領域分離 ──
+.add-section {
+  margin-bottom: 1.25rem;
+}
+
+.work-section {
+  .hint:only-child {
+    margin: 0;
+  }
+}
+
+// ── 件数表示・ページング ──
+.work-summary {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.pagination-status {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 // ── マンガ/アニメ絞り込みトグル ──
 .view-toggle {
   display: flex;
@@ -20,6 +73,19 @@
   .work-grid {
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
     gap: 1rem;
+  }
+
+  .work-badge,
+  .next-unread-badge {
+    ::ng-deep .badge {
+      font-size: 0.9rem;
+      padding: 0.3rem 0.75rem;
+    }
+  }
+
+  .want-mark {
+    font-size: 1.2rem;
+    padding: 0.1rem 0.45rem;
   }
 }
 
@@ -63,6 +129,35 @@
   position: absolute;
   top: var(--space-1);
   left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.next-unread-badge {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-warning);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.all-read-badge {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+
+  ::ng-deep .badge {
+    background: var(--color-success);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
 }
 
 .want-mark {

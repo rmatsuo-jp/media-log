@@ -87,13 +87,11 @@ describe('AnilistApiService', () => {
     req.flush({
       data: {
         Media: {
-          streamingEpisodes: [{ title: '隨ｬ1隧ｱ', thumbnail: 'https://example.com/ep1.jpg' }],
+          streamingEpisodes: [{ thumbnail: 'https://example.com/ep1.jpg' }],
         },
       },
     });
 
-    expect(result).toEqual([
-      { number: 1, title: '隨ｬ1隧ｱ', coverImageUrl: 'https://example.com/ep1.jpg' },
-    ]);
+    expect(result).toEqual([{ number: 1, coverImageUrl: 'https://example.com/ep1.jpg' }]);
   });
 });

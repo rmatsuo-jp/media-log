@@ -7,6 +7,8 @@
  * 既読は表紙画像内の「既読」バッジ（app-badge）で表す（チェックボックスは使わない）。
  * 最新既読日時（Unit.lastViewedAt）はunit-actions内にyyyy/MM/dd形式で表示する。
  * 表紙変更はModal+CoverTileの表紙ピッカーで行う。
+ * 次に見るべき未読Unit（nextUnreadUnitId）は unit-row に next-unread クラスと
+ * 「次はこれ」バッジ（既読バッジと排他）で強調表示する。
  */
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
@@ -35,6 +37,7 @@ export class WorkDetail {
 
   protected work = computed(() => this.state.workById(this.workId()));
   protected groups = computed(() => this.state.groupsForWork(this.workId()));
+  protected nextUnreadUnitId = computed(() => this.state.nextUnreadUnit(this.workId())?.id);
 
   protected newGroupTitle = signal('');
   protected newUnitNumberByGroup = signal<Record<string, string>>({});

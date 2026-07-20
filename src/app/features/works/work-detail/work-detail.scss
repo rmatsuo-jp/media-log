@@ -39,6 +39,14 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 1rem;
   }
+
+  .unit-viewed-badge,
+  .unit-next-badge {
+    ::ng-deep .badge {
+      font-size: 0.9rem;
+      padding: 0.3rem 0.75rem;
+    }
+  }
 }
 
 .unit-row {
@@ -50,6 +58,23 @@
   padding: 0.5rem;
   border-radius: var(--radius-sm);
   background: var(--color-surface, transparent);
+  border: 2px solid transparent;
+
+  &.next-unread {
+    border-color: var(--color-warning);
+  }
+}
+
+.unit-next-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+
+  ::ng-deep .badge {
+    background: var(--color-warning);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .unit-cover-wrap {
