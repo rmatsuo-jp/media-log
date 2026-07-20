@@ -20,6 +20,8 @@
 
 ## 既知の問題
 
+- **MangaDex検索でGitHub Pages上のみCORSエラー（原因判明・暫定対応済み）**: `api.mangadex.org/manga`検索がGitHub Pages上でのみ`CORSエラー`になる事象を調査した結果、レスポンスは200 OKだが`Access-Control-Allow-Origin`ヘッダーが欠落しており、`X-Cache: HIT`/`s-maxage=2592000`（30日）から、MangaDex側CDN（Cloudflare）がACAOヘッダー欠落のレスポンスを最大30日キャッシュしてしまう汚染バグと判明。アプリ側のバグではない。暫定対応として`searchManga`のクエリに`order[relevance]=desc`を追加しキャッシュキーをずらす回避策を実施（`mangadex-api.service.ts`）。汚染された別クエリで再発した場合は同様にクエリへ軽微な変化（MangaDexが正式サポートするパラメータに限る）を加えて回避する。
+
 （2026-07-19: CIのカバレッジ閾値未達は`media-firestore-sync.service.spec.ts`・`media-repository.service.spec.ts`追加、および`works-state.service.spec.ts`拡充により解消。全体でlines 88.23%/functions 82.44%/statements 85.61%/branches 70.13%まで改善。）
 
 - **`anilist-api.service.spec.ts`のテスト失敗（既知・未着手）**: `検索結果をExternalWorkSearchResultへ変換する`と`includeAdultがtrueの場合はisAdultフィルタなしで検索する`の2件が、`work-import`リファクタリングとは無関係に失敗する（リファクタリング前のベースラインでも再現確認済み）。`npm test`実行順序に依存したテスト間の状態漏れ（モックレスポンスの使い回し等）が疑われる。要調査・修正。

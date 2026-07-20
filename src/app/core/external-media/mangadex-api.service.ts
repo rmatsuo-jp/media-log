@@ -12,6 +12,10 @@
  * スキーマ検証(400 validation_exception)に失敗する）。
  * MangaDex側の一時的な504等はretry()で吸収し、それでも失敗した場合はエラーとして
  * 呼び出し側（work-import-search.service.ts）に伝播させ、「該当作品なし」と区別する。
+ * searchMangaには`order[relevance]=desc`を付与している。これは検索順の意図に加え、
+ * MangaDexのCDN（Cloudflare）がAccess-Control-Allow-Originヘッダーを欠いたレスポンスを
+ * 最大30日（s-maxage）キャッシュしてしまう既知の汚染バグを踏んだ際に、クエリ文字列を
+ * 変えることでキャッシュキーをずらし別エントリを引かせる回避策も兼ねる。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -74,6 +78,7 @@ export class MangadexApiService {
     params.set('title', title);
     params.set('limit', '20');
     params.append('includes[]', 'cover_art');
+    params.set('order[relevance]', 'desc');
     return this.http.get<MangaDexSearchResponse>(`${MANGADEX_API}/manga?${params}`).pipe(
       map((res) =>
         res.data.map((entry) => {
