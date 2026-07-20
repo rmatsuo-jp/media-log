@@ -47,8 +47,8 @@
                 }
                 <app-badge
                   class="work-badge"
-                  [variant]="work.mediaType === 'manga' ? 'default' : 'success'"
-                  >{{ mediaTypeLabel(work.mediaType) }}</app-badge
+                  [variant]="meta[work.mediaType].badgeVariant"
+                  >{{ meta[work.mediaType].label }}</app-badge
                 >
                 @if (work.wantToConsume) {
                   <span class="want-mark">★</span>

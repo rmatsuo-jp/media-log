@@ -7,10 +7,10 @@
  * （読みたいタブからの追加を成立させるため）。
  */
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
-import { MediaType, Work } from '@core/models/media.model';
+import { MediaType, MediaTypeFilter, Work } from '@core/models/media.model';
+import { MEDIA_TYPE_OPTIONS } from '@core/models/media-type-meta';
 import { WorksStateService } from '../works-state.service';
 import { WorkImport } from '../work-import/work-import';
-import { MediaTypeFilter } from '../work-import/work-import-search.service';
 
 @Component({
   selector: 'app-add-work-form',
@@ -25,6 +25,7 @@ export class AddWorkForm {
   wantToConsume = input(false);
   mediaType = input.required<MediaTypeFilter>();
 
+  protected readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
   protected newTitle = signal('');
   protected newMediaType = signal<MediaType>('manga');
 

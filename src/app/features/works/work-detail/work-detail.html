@@ -1,6 +1,6 @@
 <!-- @file 作品詳細テンプレート。Group→Unitの階層表示、既読トグル・周回カウント・
      読みたいフラグの操作、グループ/Unit追加フォームを持つ。
-     Unit一覧は画像中心のグリッドカードで、巻/話ラベルはw.mediaTypeで分岐。
+     Unit一覧は画像中心のグリッドカードで、巻/話ラベルはMEDIA_TYPE_META（meta）のformatUnitで表記。
      表紙を左クリックすると既読化＋周回数+1、右クリックすると表紙ピッカーモーダル
      （表紙候補が2件以上あれば候補グリッド、周回数>0なら「周回数を-1」、常に「削除」）を表示する
      （work-listの表紙右クリックメニューと同じモーダル方式）。
@@ -63,9 +63,7 @@
                   >
                 }
               </span>
-              <span class="unit-number">{{
-                w.mediaType === 'manga' ? unit.number + '巻' : '第' + unit.number + '話'
-              }}</span>
+              <span class="unit-number">{{ meta[w.mediaType].formatUnit(unit.number) }}</span>
               <div class="unit-actions">
                 <span class="view-count">{{ unit.viewCount }}回</span>
                 @if (unit.lastViewedAt) {
@@ -111,7 +109,7 @@
   @if (coverPickerUnit(); as pickUnit) {
     <app-modal (closed)="closeCoverPicker()">
       <h2 class="modal-title">
-        {{ work()?.mediaType === 'manga' ? pickUnit.number + '巻' : '第' + pickUnit.number + '話' }}
+        {{ formatUnitNumber(pickUnit.number) }}
       </h2>
       @if ((pickUnit.coverImageCandidates?.length ?? 0) > 0) {
         <div class="cover-picker-grid">

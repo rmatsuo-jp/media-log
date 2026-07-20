@@ -9,12 +9,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import { Badge } from '@shared/ui/badge/badge';
 import { Card } from '@shared/ui/card/card';
-import { MediaType } from '@core/models/media.model';
-import {
-  MediaTypeToggle,
-  MediaTypeToggleOption,
-} from '@shared/ui/media-type-toggle/media-type-toggle';
-import { MediaTypeFilter } from '../work-import/work-import-search.service';
+import { MediaTypeFilter } from '@core/models/media.model';
+import { MEDIA_TYPE_META, MEDIA_TYPE_FILTER_OPTIONS } from '@core/models/media-type-meta';
+import { MediaTypeToggle } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
 
@@ -27,17 +24,10 @@ import { AddWorkForm } from '../add-work-form/add-work-form';
 })
 export class Wishlist {
   protected state = inject(WorksStateService);
+  protected readonly meta = MEDIA_TYPE_META;
 
-  mediaTypeLabel(type: MediaType): string {
-    return type === 'manga' ? 'マンガ' : 'アニメ';
-  }
-
-  // ── マンガ/アニメ絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
-  protected readonly mediaTypeFilterOptions: MediaTypeToggleOption[] = [
-    { value: 'manga', label: 'マンガ' },
-    { value: 'anime', label: 'アニメ' },
-    { value: 'both', label: 'すべて' },
-  ];
+  // ── メディア種別絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
+  protected readonly mediaTypeFilterOptions = MEDIA_TYPE_FILTER_OPTIONS;
   protected mediaTypeFilter = signal<MediaTypeFilter>('manga');
 
   protected filteredEntries = computed(() => {

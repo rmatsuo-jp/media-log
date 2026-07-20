@@ -11,17 +11,14 @@
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MediaType, Work } from '@core/models/media.model';
+import { MediaTypeFilter, Work } from '@core/models/media.model';
+import { MEDIA_TYPE_META, MEDIA_TYPE_FILTER_OPTIONS } from '@core/models/media-type-meta';
 import { Badge } from '@shared/ui/badge/badge';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Card } from '@shared/ui/card/card';
 import { ConfirmDialog } from '@shared/ui/confirm-dialog/confirm-dialog';
-import {
-  MediaTypeToggle,
-  MediaTypeToggleOption,
-} from '@shared/ui/media-type-toggle/media-type-toggle';
-import { MediaTypeFilter } from '../work-import/work-import-search.service';
+import { MediaTypeToggle } from '@shared/ui/media-type-toggle/media-type-toggle';
 import { WorksStateService } from '../works-state.service';
 import { AddWorkForm } from '../add-work-form/add-work-form';
 
@@ -34,27 +31,20 @@ import { AddWorkForm } from '../add-work-form/add-work-form';
 })
 export class WorkList {
   protected state = inject(WorksStateService);
-
-  mediaTypeLabel(type: MediaType): string {
-    return type === 'manga' ? 'マンガ' : 'アニメ';
-  }
+  protected readonly meta = MEDIA_TYPE_META;
 
   nextUnreadLabel(work: Work): string | null {
     const unit = this.state.nextUnreadUnit(work.id);
     if (!unit) return null;
-    return work.mediaType === 'manga' ? `次: ${unit.number}巻` : `次: 第${unit.number}話`;
+    return `次: ${MEDIA_TYPE_META[work.mediaType].formatUnit(unit.number)}`;
   }
 
   isFullyRead(work: Work): boolean {
     return this.state.isFullyRead(work.id);
   }
 
-  // ── マンガ/アニメ絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
-  protected readonly mediaTypeFilterOptions: MediaTypeToggleOption[] = [
-    { value: 'manga', label: 'マンガ' },
-    { value: 'anime', label: 'アニメ' },
-    { value: 'both', label: 'すべて' },
-  ];
+  // ── メディア種別絞り込み（非永続、追加フォームの検索絞り込みとも共有） ──
+  protected readonly mediaTypeFilterOptions = MEDIA_TYPE_FILTER_OPTIONS;
   protected mediaTypeFilter = signal<MediaTypeFilter>('manga');
 
   protected filteredWorks = computed(() => {

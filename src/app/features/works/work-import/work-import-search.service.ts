@@ -21,7 +21,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, distinctUntilChanged } from 'rxjs';
-import { MediaType } from '@core/models/media.model';
+import { MediaTypeFilter } from '@core/models/media.model';
 import {
   ExternalUnitCandidate,
   ExternalWorkSearchResult,
@@ -31,7 +31,6 @@ import { MangaVolumeLookupService } from '@core/external-media/manga-volume-look
 import { WorkImportSettingsService } from './work-import-settings.service';
 
 export type NumberFilter = 'all' | 'integer' | 'fractional';
-export type MediaTypeFilter = MediaType | 'both';
 export type TitleLang = 'original' | 'ja';
 export type SortBy = 'relevance' | 'popularity' | 'score';
 

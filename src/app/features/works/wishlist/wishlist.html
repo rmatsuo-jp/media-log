@@ -34,8 +34,8 @@
                 }
                 <app-badge
                   class="work-badge"
-                  [variant]="entry.work.mediaType === 'manga' ? 'default' : 'success'"
-                  >{{ mediaTypeLabel(entry.work.mediaType) }}</app-badge
+                  [variant]="meta[entry.work.mediaType].badgeVariant"
+                  >{{ meta[entry.work.mediaType].label }}</app-badge
                 >
               </span>
               <span class="work-title">{{ entry.work.title }}</span>

@@ -9,8 +9,9 @@
         [value]="newMediaType()"
         (change)="newMediaType.set($any($event.target).value)"
       >
-        <option value="manga">マンガ</option>
-        <option value="anime">アニメ</option>
+        @for (option of mediaTypeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
       </select>
       <input
         class="text-input"

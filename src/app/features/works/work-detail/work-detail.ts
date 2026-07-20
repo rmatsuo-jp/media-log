@@ -16,6 +16,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Group, Unit } from '@core/models/media.model';
+import { MEDIA_TYPE_META } from '@core/models/media-type-meta';
 import { Modal } from '@shared/ui/modal/modal';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Badge } from '@shared/ui/badge/badge';
@@ -31,6 +32,7 @@ import { WorksStateService } from '../works-state.service';
 })
 export class WorkDetail {
   protected state = inject(WorksStateService);
+  protected readonly meta = MEDIA_TYPE_META;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -40,6 +42,12 @@ export class WorkDetail {
   protected work = computed(() => this.state.workById(this.workId()));
   protected groups = computed(() => this.state.groupsForWork(this.workId()));
   protected nextUnreadUnitId = computed(() => this.state.nextUnreadUnit(this.workId())?.id);
+
+  // 表紙ピッカーモーダル等、テンプレートで作品未確定の可能性がある場面用の単位表記ヘルパ
+  formatUnitNumber(n: number): string {
+    const work = this.work();
+    return work ? MEDIA_TYPE_META[work.mediaType].formatUnit(n) : String(n);
+  }
 
   protected newGroupTitle = signal('');
   protected newUnitNumberByGroup = signal<Record<string, string>>({});

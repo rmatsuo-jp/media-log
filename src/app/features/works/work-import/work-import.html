@@ -107,9 +107,9 @@
           @if (search.mediaType() === 'both') {
             <app-badge
               class="work-import-badge"
-              [variant]="result.mediaType === 'manga' ? 'default' : 'success'"
+              [variant]="meta[result.mediaType].badgeVariant"
             >
-              {{ result.mediaType === 'manga' ? 'マンガ' : 'アニメ' }}
+              {{ meta[result.mediaType].label }}
             </app-badge>
           }
         </div>
@@ -158,12 +158,12 @@
       </button>
     } @else if (search.candidates().length === 0) {
       <p class="hint">
-        {{ work.mediaType === 'manga' ? '巻情報' : '話数サムネイル' }}
+        {{ meta[work.mediaType].importPanelLabel }}
         が見つかりませんでした。作品情報のみ取り込みます。
       </p>
     } @else {
       <p class="hint">
-        取り込む{{ work.mediaType === 'manga' ? '巻' : '話数' }}を選択してください。
+        取り込む{{ meta[work.mediaType].importUnitNoun }}を選択してください。
       </p>
       <div class="view-toggle">
         <button
@@ -197,7 +197,7 @@
             <app-cover-tile
               [imageUrl]="search.coverUrlFor(candidate)"
               [label]="
-                work.mediaType === 'manga' ? candidate.number + '巻' : '第' + candidate.number + '話'
+                meta[work.mediaType].formatUnit(candidate.number)
               "
               [selected]="isSelected(candidate.number)"
               size="sm"

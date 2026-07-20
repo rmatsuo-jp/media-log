@@ -19,12 +19,13 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { Work } from '@core/models/media.model';
+import { MediaTypeFilter, Work } from '@core/models/media.model';
+import { MEDIA_TYPE_META } from '@core/models/media-type-meta';
 import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
-import { MediaTypeFilter, WorkImportSearchService } from './work-import-search.service';
+import { WorkImportSearchService } from './work-import-search.service';
 import { WorkImportMapperService } from './work-import-mapper.service';
 
 type Step = 'search' | 'candidates';
@@ -40,6 +41,7 @@ type Step = 'search' | 'candidates';
 export class WorkImport {
   private mapper = inject(WorkImportMapperService);
   protected search = inject(WorkImportSearchService);
+  protected readonly meta = MEDIA_TYPE_META;
 
   mediaType = input.required<MediaTypeFilter>();
 
@@ -57,7 +59,7 @@ export class WorkImport {
   selectWork(result: ExternalWorkSearchResult): void {
     this.selectedWork.set(result);
     this.step.set('candidates');
-    this.groupTitle.set(result.mediaType === 'manga' ? '取り込んだ巻' : '取り込んだ話数');
+    this.groupTitle.set(MEDIA_TYPE_META[result.mediaType].importGroupTitle);
     this.selectedNumbers.set(new Set());
 
     this.search.loadCandidatesFor(result, (candidates) => {
