@@ -24,8 +24,8 @@ import { ExternalWorkSearchResult } from '@core/external-media/external-media.mo
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
-import { WorksStateService } from '../works-state.service';
 import { MediaTypeFilter, WorkImportSearchService } from './work-import-search.service';
+import { WorkImportMapperService } from './work-import-mapper.service';
 
 type Step = 'search' | 'candidates';
 
@@ -38,7 +38,7 @@ type Step = 'search' | 'candidates';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkImport {
-  private state = inject(WorksStateService);
+  private mapper = inject(WorkImportMapperService);
   protected search = inject(WorkImportSearchService);
 
   mediaType = input.required<MediaTypeFilter>();
@@ -97,13 +97,13 @@ export class WorkImport {
   confirmImport(): void {
     const result = this.selectedWork();
     if (!result) return;
-    const work = this.state.importWorkFromExternal(result);
+    const work = this.mapper.importWorkFromExternal(result);
     const chosen = this.search
       .visibleCandidates()
       .filter((c) => this.selectedNumbers().has(c.number))
       .map((c) => ({ ...c, coverImageUrl: this.search.coverUrlFor(c) }));
     if (chosen.length > 0) {
-      this.state.importUnitsAsGroup(work.id, this.groupTitle().trim() || '取り込み', chosen);
+      this.mapper.importUnitsAsGroup(work.id, this.groupTitle().trim() || '取り込み', chosen);
     }
     this.imported.emit(work);
 

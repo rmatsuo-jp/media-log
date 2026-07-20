@@ -41,12 +41,16 @@ function mergeAndGroupByVolume(
   return byVolume;
 }
 
+function latestIntegerVolume(matches: GoogleBooksVolumeMatch[]): number {
+  const integerVolumes = matches.map((m) => m.volumeNumber).filter((n) => Number.isInteger(n));
+  return integerVolumes.length > 0 ? Math.max(...integerVolumes) : 0;
+}
+
 function missingVolumeNumbers(
   matches: GoogleBooksVolumeMatch[],
   byVolume: Map<number, string[]>,
 ): number[] {
-  const integerVolumes = matches.map((m) => m.volumeNumber).filter((n) => Number.isInteger(n));
-  const latestVolume = integerVolumes.length > 0 ? Math.max(...integerVolumes) : 0;
+  const latestVolume = latestIntegerVolume(matches);
   const missing: number[] = [];
   for (let number = 1; number <= latestVolume; number++) {
     if (!byVolume.has(number)) missing.push(number);
@@ -58,8 +62,7 @@ function fillMissingVolumes(
   matches: GoogleBooksVolumeMatch[],
   byVolume: Map<number, string[]>,
 ): ExternalUnitCandidate[] {
-  const integerVolumes = matches.map((m) => m.volumeNumber).filter((n) => Number.isInteger(n));
-  const latestVolume = integerVolumes.length > 0 ? Math.max(...integerVolumes) : 0;
+  const latestVolume = latestIntegerVolume(matches);
   const fractionalVolumes = [...new Set(matches.map((m) => m.volumeNumber))]
     .filter((n) => !Number.isInteger(n))
     .sort((a, b) => a - b);

@@ -52,11 +52,11 @@ export class MediaRepositoryService {
   }
 
   deleteWork(id: string): void {
-    this.store.deleteWork(id);
     const work = this.store.allWorks().find((w) => w.id === id);
-    if (work) this.sync.pushWorks([work]);
-    this.sync.pushGroups(this.store.allGroups().filter((g) => g.workId === id));
-    this.sync.pushUnits(this.store.allUnits().filter((u) => u.workId === id));
+    const { groups, units } = this.store.deleteWork(id);
+    if (work) this.sync.pushWorks([{ ...work, deleted: true }]);
+    this.sync.pushGroups(groups.map((g) => ({ ...g, deleted: true })));
+    this.sync.pushUnits(units.map((u) => ({ ...u, deleted: true })));
   }
 
   // ── Group ────────────────────────────────────────────────────────
@@ -78,10 +78,10 @@ export class MediaRepositoryService {
   }
 
   deleteGroup(id: string): void {
-    this.store.deleteGroup(id);
     const group = this.store.allGroups().find((g) => g.id === id);
-    if (group) this.sync.pushGroups([group]);
-    this.sync.pushUnits(this.store.allUnits().filter((u) => u.groupId === id));
+    const { units } = this.store.deleteGroup(id);
+    if (group) this.sync.pushGroups([{ ...group, deleted: true }]);
+    this.sync.pushUnits(units.map((u) => ({ ...u, deleted: true })));
   }
 
   // ── Unit ─────────────────────────────────────────────────────────
