@@ -1,3 +1,10 @@
+## [0.7.4](https://github.com/rmatsuo-jp/media-log/compare/v0.7.3...v0.7.4) (2026-07-20)
+
+
+### Bug Fixes
+
+* AniListリクエストからngsw-bypassヘッダーを削除 ([842007d](https://github.com/rmatsuo-jp/media-log/commit/842007d3bb1a1c9e42a499b159df4276e2efe865))
+
 ## [0.7.3](https://github.com/rmatsuo-jp/media-log/compare/v0.7.2...v0.7.3) (2026-07-20)
 
 
