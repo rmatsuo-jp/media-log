@@ -86,9 +86,7 @@ export class AchievementsFirestoreSyncService {
     const uid = this.auth.user()?.uid;
     if (!uid || achievements.length === 0) return;
     Promise.all(
-      achievements.map((a) =>
-        setDoc(this.docRef(uid, a.id), stripUndefinedShallow({ ...a })),
-      ),
+      achievements.map((a) => setDoc(this.docRef(uid, a.id), stripUndefinedShallow({ ...a }))),
     )
       .then(() => {
         for (const a of achievements) this.pendingPushIds.delete(a.id);

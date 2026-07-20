@@ -102,7 +102,10 @@ export class AchievementsStateService {
     // 条件を満たしたが未解除の実績があれば解除記録を残す（解除トリガーはこのサービスが一元管理）。
     effect(() => {
       for (const progress of this.achievementProgress()) {
-        if (progress.unlockedAt === undefined && progress.current >= progress.definition.threshold) {
+        if (
+          progress.unlockedAt === undefined &&
+          progress.current >= progress.definition.threshold
+        ) {
           this.repo.unlockAchievement(progress.definition.id);
         }
       }
