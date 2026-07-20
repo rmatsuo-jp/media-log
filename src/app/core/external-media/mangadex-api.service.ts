@@ -7,11 +7,10 @@
  * 突き合わせて同一作品を確実に特定する（タイトル文字列の曖昧一致による誤爆を防ぐ）。
  * MangaDexは1巻に複数のcover_art（重版・デジタル版など）を持つため、getVolumesは巻番号で
  * 重複排除し、代表URLをcoverImageUrlに、全候補をvariantCoverImageUrlsに格納する。
- * GitHub Pages本番環境ではAngular Service Worker(ngsw-worker.js)がクロスオリジンの
- * fetchも傍受してしまい、その結果CORSエラーになる事象を確認したため、`ngsw-bypass`を
- * リクエストヘッダーとして付与しSWをバイパスする（クエリパラメータで付与すると
- * MangaDex側のクエリパラメータスキーマ検証(400 validation_exception)に失敗するため
- * ヘッダー形式を使う）。
+ * ngsw-bypassヘッダー・クエリパラメータは付与しない。ヘッダーとして付与すると
+ * プリフライトが必須になり、MangaDex側のWAFがそのカスタムヘッダー自体を拒否して
+ * プリフライトが403になる事象を確認したため（クエリパラメータで付与するとMangaDex側の
+ * クエリパラメータスキーマ検証(400 validation_exception)に失敗するため、どちらの方式も使えない）。
  * MangaDex側の一時的な504等はretry()で吸収し、それでも失敗した場合はエラーとして
  * 呼び出し側（work-import-search.service.ts）に伝播させ、「該当作品なし」と区別する。
  * searchMangaには`order[relevance]=desc`を付与している。これは検索順の意図に加え、
@@ -81,27 +80,23 @@ export class MangadexApiService {
     params.set('limit', '20');
     params.append('includes[]', 'cover_art');
     params.set('order[relevance]', 'desc');
-    return this.http
-      .get<MangaDexSearchResponse>(`${MANGADEX_API}/manga?${params}`, {
-        headers: { 'ngsw-bypass': 'true' },
-      })
-      .pipe(
-        map((res) =>
-          res.data.map((entry) => {
-            const coverRel = entry.relationships.find((r) => r.type === 'cover_art');
-            const fileName = coverRel?.attributes?.fileName;
-            return {
-              mediaType: 'manga' as const,
-              externalSource: 'mangadex' as const,
-              externalId: entry.id,
-              title: pickTitle(entry.attributes),
-              coverImageUrl: fileName ? coverUrl(entry.id, fileName) : undefined,
-              anilistId: entry.attributes.links?.['al'],
-            };
-          }),
-        ),
-        retry({ count: 2, delay: 1000 }),
-      );
+    return this.http.get<MangaDexSearchResponse>(`${MANGADEX_API}/manga?${params}`).pipe(
+      map((res) =>
+        res.data.map((entry) => {
+          const coverRel = entry.relationships.find((r) => r.type === 'cover_art');
+          const fileName = coverRel?.attributes?.fileName;
+          return {
+            mediaType: 'manga' as const,
+            externalSource: 'mangadex' as const,
+            externalId: entry.id,
+            title: pickTitle(entry.attributes),
+            coverImageUrl: fileName ? coverUrl(entry.id, fileName) : undefined,
+            anilistId: entry.attributes.links?.['al'],
+          };
+        }),
+      ),
+      retry({ count: 2, delay: 1000 }),
+    );
   }
 
   getVolumes(mangaId: string): Observable<ExternalUnitCandidate[]> {
@@ -109,31 +104,27 @@ export class MangadexApiService {
     params.append('manga[]', mangaId);
     params.set('limit', '100');
     params.set('order[volume]', 'asc');
-    return this.http
-      .get<MangaDexCoverResponse>(`${MANGADEX_API}/cover?${params}`, {
-        headers: { 'ngsw-bypass': 'true' },
-      })
-      .pipe(
-        map((res) => {
-          const urlsByVolume = new Map<number, string[]>();
-          for (const entry of res.data) {
-            const { volume, fileName } = entry.attributes;
-            if (volume == null || volume === '') continue;
-            const number = Number(volume);
-            if (!Number.isFinite(number)) continue;
-            const urls = urlsByVolume.get(number) ?? [];
-            urls.push(coverUrl(mangaId, fileName));
-            urlsByVolume.set(number, urls);
-          }
-          return Array.from(urlsByVolume.entries())
-            .map(([number, urls]) => ({
-              number,
-              coverImageUrl: urls[0],
-              variantCoverImageUrls: urls,
-            }))
-            .sort((a, b) => a.number - b.number);
-        }),
-        retry({ count: 2, delay: 1000 }),
-      );
+    return this.http.get<MangaDexCoverResponse>(`${MANGADEX_API}/cover?${params}`).pipe(
+      map((res) => {
+        const urlsByVolume = new Map<number, string[]>();
+        for (const entry of res.data) {
+          const { volume, fileName } = entry.attributes;
+          if (volume == null || volume === '') continue;
+          const number = Number(volume);
+          if (!Number.isFinite(number)) continue;
+          const urls = urlsByVolume.get(number) ?? [];
+          urls.push(coverUrl(mangaId, fileName));
+          urlsByVolume.set(number, urls);
+        }
+        return Array.from(urlsByVolume.entries())
+          .map(([number, urls]) => ({
+            number,
+            coverImageUrl: urls[0],
+            variantCoverImageUrls: urls,
+          }))
+          .sort((a, b) => a.number - b.number);
+      }),
+      retry({ count: 2, delay: 1000 }),
+    );
   }
 }
