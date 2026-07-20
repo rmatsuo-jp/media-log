@@ -7,10 +7,9 @@
  * 突き合わせて同一作品を確実に特定する（タイトル文字列の曖昧一致による誤爆を防ぐ）。
  * MangaDexは1巻に複数のcover_art（重版・デジタル版など）を持つため、getVolumesは巻番号で
  * 重複排除し、代表URLをcoverImageUrlに、全候補をvariantCoverImageUrlsに格納する。
- * 本番環境ではService Worker(ngsw)が未設定のクロスオリジンリクエストを横取りして504を
- * 返すことがあるため、全リクエストにngsw-bypassクエリパラメータを付与しSWの介入を回避する
- * （カスタムヘッダーにするとCORSプリフライトが発生し外部APIによっては失敗するため、
- * プリフライト不要なクエリパラメータ方式を採用）。
+ * Angular Service Workerは既定では同一オリジン以外のリクエストを傍受しないため、
+ * ngsw-bypassクエリパラメータは付与しない（付与するとMangaDex側のクエリパラメータ
+ * スキーマ検証(400 validation_exception)に失敗する）。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
@@ -73,7 +72,6 @@ export class MangadexApiService {
     params.set('title', title);
     params.set('limit', '20');
     params.append('includes[]', 'cover_art');
-    params.set('ngsw-bypass', '');
     return this.http.get<MangaDexSearchResponse>(`${MANGADEX_API}/manga?${params}`).pipe(
       map((res) =>
         res.data.map((entry) => {
@@ -97,7 +95,6 @@ export class MangadexApiService {
     params.append('manga[]', mangaId);
     params.set('limit', '100');
     params.set('order[volume]', 'asc');
-    params.set('ngsw-bypass', '');
     return this.http.get<MangaDexCoverResponse>(`${MANGADEX_API}/cover?${params}`).pipe(
       map((res) => {
         const urlsByVolume = new Map<number, string[]>();

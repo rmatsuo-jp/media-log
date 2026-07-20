@@ -8,6 +8,9 @@
  * work-detail画面での右クリック切り替え（表紙ピッカー）が有効になる。
  * Work.coverImageCandidates は同じ形の受け皿（現時点では取り込みロジック未実装）。作品一覧の
  * カバー右クリックでは候補数に関わらず削除メニューが常に開く。
+ * Achievement は実績（ゲーミフィケーション）の解除記録。定義（閾値・文言）は
+ * core/achievements/achievement-definitions.ts に静的マスタとして持ち、ここには
+ * 「いつ解除したか」のみを保存する。
  */
 
 export type MediaType = 'manga' | 'anime'; // 将来 'movie' | 'book' を追加
@@ -51,4 +54,10 @@ export interface Unit {
   createdAt: string;
   updatedAt: string;
   deleted?: boolean;
+}
+
+export interface Achievement {
+  id: string; // 実績定義ID（achievement-definitions.ts の AchievementDefinition.id と対応）
+  unlockedAt: string; // ISO、解除日時
+  deleted?: boolean; // tombstone
 }

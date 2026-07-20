@@ -92,6 +92,7 @@ export class WorkDetail {
   }
 
   deleteUnit(unit: Unit) {
+    if (!confirm(`${unit.number}を削除しますか？`)) return;
     this.state.deleteUnit(unit.id);
   }
 
