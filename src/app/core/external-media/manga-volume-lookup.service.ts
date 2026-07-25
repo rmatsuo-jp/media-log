@@ -1,8 +1,9 @@
 /**
  * @file マンガの巻候補取得のオーケストレーション。Google Booksでシリーズタイトルから巻（ISBN・巻数・表紙）
  * を検索し、得られたISBN群をopenBDに渡して日本語の正確な書誌情報（表紙・発売日）で補完する。
- * MangaDex時代のsearchManga→getVolumesの2段構成に相当する。openBD側に表紙があれば優先差し替えし、
- * なければGoogle Books側の表紙を使う。同一巻番号に複数マッチがある場合はvariantCoverImageUrlsに集約する
+ * MangaDex時代のsearchManga→getVolumesの2段構成に相当する。ユーザーが選べる表紙候補を増やすため、
+ * openBD・Google Books双方に表紙があれば両方をvariantCoverImageUrlsへ積む（片方のみ採用せず捨てない）。
+ * 主表紙（coverImageUrl）はopenBD優先とする。同一巻番号に複数ISBNマッチがある場合も同様に集約する
  * （MangaDexのMap<number, string[]>集約パターンを踏襲）。UIでは巻数のみを表示しタイトル文字列は使わない
  * ため、ExternalUnitCandidateにtitleは持たせない。
  * それでも表紙が見つからない巻（Google Books側にISBNが無い、またはopenBDに該当レコードが無い）については、
@@ -32,10 +33,14 @@ function mergeAndGroupByVolume(
   const byVolume = new Map<number, string[]>();
   for (const match of matches) {
     const openBd = match.isbn13 ? openBdByIsbn.get(match.isbn13) : undefined;
-    const coverImageUrl = openBd?.coverImageUrl ?? match.coverImageUrl;
-    if (!coverImageUrl) continue;
+    const candidateUrls = [openBd?.coverImageUrl, match.coverImageUrl].filter(
+      (url): url is string => !!url,
+    );
+    if (candidateUrls.length === 0) continue;
     const urls = byVolume.get(match.volumeNumber) ?? [];
-    urls.push(coverImageUrl);
+    for (const url of candidateUrls) {
+      if (!urls.includes(url)) urls.push(url);
+    }
     byVolume.set(match.volumeNumber, urls);
   }
   return byVolume;

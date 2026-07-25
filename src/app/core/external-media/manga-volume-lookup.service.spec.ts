@@ -53,7 +53,7 @@ describe('MangaVolumeLookupService', () => {
     ]);
   });
 
-  it('openBDの表紙があれば優先し、同一巻の複数候補はvariantCoverImageUrlsに集約する', () => {
+  it('openBDの表紙を優先しつつGoogle Books側の表紙も候補として残し、同一巻の複数候補はvariantCoverImageUrlsに集約する', () => {
     googleBooks.searchVolumes.mockReturnValue(
       of([
         {
@@ -88,7 +88,45 @@ describe('MangaVolumeLookupService', () => {
       {
         number: 1,
         coverImageUrl: 'https://example.com/ob-1.jpg',
-        variantCoverImageUrls: ['https://example.com/ob-1.jpg', 'https://example.com/gb-1b.jpg'],
+        variantCoverImageUrls: [
+          'https://example.com/ob-1.jpg',
+          'https://example.com/gb-1.jpg',
+          'https://example.com/gb-1b.jpg',
+        ],
+      },
+    ]);
+  });
+
+  it('openBDとGoogle Booksの表紙が同一URLの場合は重複させない', () => {
+    googleBooks.searchVolumes.mockReturnValue(
+      of([
+        {
+          isbn13: '9784000000001',
+          volumeNumber: 1,
+          title: '鬼滅の刃 1',
+          coverImageUrl: 'https://example.com/same.jpg',
+        },
+      ]),
+    );
+    openBd.getByIsbns.mockReturnValue(
+      of(
+        new Map([
+          [
+            '9784000000001',
+            { isbn: '9784000000001', title: '鬼滅の刃 1', coverImageUrl: 'https://example.com/same.jpg' },
+          ],
+        ]),
+      ),
+    );
+
+    let result: unknown;
+    service.getVolumes('鬼滅の刃').subscribe((r) => (result = r));
+
+    expect(result).toEqual([
+      {
+        number: 1,
+        coverImageUrl: 'https://example.com/same.jpg',
+        variantCoverImageUrls: ['https://example.com/same.jpg'],
       },
     ]);
   });
