@@ -210,6 +210,7 @@
               [selected]="isSelected(candidate.number)"
               size="sm"
               (tileClick)="toggleCandidate(candidate.number)"
+              (contextmenu)="onCandidateCoverContextMenu($event, candidate)"
             />
             @if ((candidate.variantCoverImageUrls?.length ?? 0) > 1) {
               <button
@@ -239,5 +240,27 @@
     <div class="work-actions">
       <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
     </div>
+  }
+
+  @if (coverPickerCandidate(); as pickCandidate) {
+    <app-modal (closed)="closeCoverPicker()">
+      <h2 class="modal-title">
+        {{ meta[selectedWork()!.mediaType].formatUnit(pickCandidate.number) }}
+      </h2>
+      <div class="cover-picker-grid">
+        @for (
+          url of pickCandidate.variantCoverImageUrls;
+          track url;
+          let i = $index
+        ) {
+          <app-cover-tile
+            [imageUrl]="url"
+            [selected]="url === search.coverUrlFor(pickCandidate)"
+            size="sm"
+            (tileClick)="selectCandidateVariant(i)"
+          />
+        }
+      </div>
+    </app-modal>
   }
 </div>

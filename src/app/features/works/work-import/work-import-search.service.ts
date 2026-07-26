@@ -4,6 +4,7 @@
  * includeAdult/titleLang/sortBy/page）と検索結果、候補取得結果（candidates/numberFilter/variantIndexByNumber）
  * をsignalで保持する。query/mediaType/includeAdultの変更はtoObservable()経由でdebounceTime(400ms)し、
  * トリム後2文字未満でなければ自動検索する。実処理はperformSearch()に集約し、「検索」ボタン/Enterキーによる
+ * variantIndexByNumberはcycleVariant()（巡回）とsetVariant()（右クリックメニューからの直接指定）の両方で更新する。
  * 即時検索（search()）と共通化している。マンガの巻取得はAniListの検索結果の日本語タイトル（titleNative。
  * 未取得時のみromaji/english表記のtitleにフォールバック）をMangaVolumeLookupService（Google Books検索→
  * openBD補完）に渡す。ローマ字/英語タイトル（titleのみ）で検索すると、Google Books側で英語翻訳版
@@ -204,6 +205,16 @@ export class WorkImportSearchService {
       const next = new Map(map);
       const current = next.get(candidate.number) ?? 0;
       next.set(candidate.number, (current + 1) % variants.length);
+      return next;
+    });
+  }
+
+  setVariant(candidate: ExternalUnitCandidate, index: number): void {
+    const variants = candidate.variantCoverImageUrls;
+    if (!variants || index < 0 || index >= variants.length) return;
+    this.variantIndexByNumber.update((map) => {
+      const next = new Map(map);
+      next.set(candidate.number, index);
       return next;
     });
   }

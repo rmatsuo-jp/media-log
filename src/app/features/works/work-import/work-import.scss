@@ -76,6 +76,19 @@
   }
 }
 
+// ── 巻表紙右クリックメニュー（代替表紙候補選択） ──
+.modal-title {
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.cover-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+  max-width: 20rem;
+}
+
 // ── 詳細設定（成人向け表示切り替え等） ──
 .advanced-settings {
   margin: var(--space-2) 0;

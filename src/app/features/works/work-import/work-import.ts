@@ -7,6 +7,8 @@
  * （numberFilter）はサービス側のsignalを参照する。
  * 詳細設定（<details>）内は`[manualAdd]`属性でng-content投影可能にし、呼び出し元（AddWorkForm）の
  * 手動タイトル追加フォームを同じ詳細設定に統合表示する。
+ * 巻タイルを右クリックすると、代替表紙候補（variantCoverImageUrls）をグリッド表示するモーダルを開き、
+ * クリックした候補を直接選択できる（work-listの作品カバー右クリックメニューと同様のパターン）。
  * mediaType inputは呼び出し元（work-list）のトグル値を受け取り、effectでsearch.mediaTypeへ同期する
  * （自前のトグルUIは持たない）。
  * selectWork()時にWorksStateService.findPossibleDuplicates()で既存Workとの重複候補を検知し、
@@ -24,10 +26,14 @@ import {
 } from '@angular/core';
 import { MediaTypeFilter, Work } from '@core/models/media.model';
 import { MEDIA_TYPE_META } from '@core/models/media-type-meta';
-import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
+import {
+  ExternalUnitCandidate,
+  ExternalWorkSearchResult,
+} from '@core/external-media/external-media.model';
 import { CoverTile } from '@shared/ui/cover-tile/cover-tile';
 import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
+import { Modal } from '@shared/ui/modal/modal';
 import { WorkImportSearchService } from './work-import-search.service';
 import { WorkImportMapperService } from './work-import-mapper.service';
 import { DuplicateWorkMatch, WorksStateService } from '../works-state.service';
@@ -36,7 +42,7 @@ type Step = 'search' | 'candidates';
 
 @Component({
   selector: 'app-work-import',
-  imports: [CoverTile, Spinner, Badge],
+  imports: [CoverTile, Spinner, Badge, Modal],
   providers: [WorkImportSearchService],
   templateUrl: './work-import.html',
   styleUrl: './work-import.scss',
@@ -102,6 +108,25 @@ export class WorkImport {
       else next.add(number);
       return next;
     });
+  }
+
+  protected coverPickerCandidate = signal<ExternalUnitCandidate | null>(null);
+
+  onCandidateCoverContextMenu(event: MouseEvent, candidate: ExternalUnitCandidate): void {
+    event.preventDefault();
+    if ((candidate.variantCoverImageUrls?.length ?? 0) < 2) return;
+    this.coverPickerCandidate.set(candidate);
+  }
+
+  closeCoverPicker(): void {
+    this.coverPickerCandidate.set(null);
+  }
+
+  selectCandidateVariant(index: number): void {
+    const candidate = this.coverPickerCandidate();
+    if (!candidate) return;
+    this.search.setVariant(candidate, index);
+    this.coverPickerCandidate.set(null);
   }
 
   confirmImport(): void {
