@@ -15,7 +15,7 @@
 | [SECURITY.md](../SECURITY.md)                                  | サポート対象バージョンと脆弱性報告方法（GitHub Private Vulnerability Reporting）               |
 | [CHANGELOG.md](../CHANGELOG.md)                                | semantic-releaseによる自動生成のリリースノート                                                 |
 | [setup.md](setup.md)                                           | ローカル開発環境構築手順（clone、Node/npmバージョン、テスト・lint・ビルド）                    |
-| [external-media-integration.md](external-media-integration.md) | 作品取り込みが使う外部API（AniList/Google Books/openBD）の役割分担と依存関係                     |
+| [external-media-integration.md](external-media-integration.md) | 作品取り込みが使う外部API（AniList/Google Books/openBD/NDL）の役割分担・組み合わせ表・アーキテクチャ評価と改善方向 |
 | [data-design.md](data-design.md)                                | Work/Group/Unitのドメインモデルと、tombstone方式のlocalStorage/Firestore永続化設計               |
 | [api.md](api.md)                                                | 外部連携API（AniList/Google Books/openBD/NDL Search）のエンドポイント・リクエスト/レスポンス仕様 |
 

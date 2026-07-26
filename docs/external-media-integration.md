@@ -33,6 +33,32 @@ CORS/403エラーが繰り返し発生したため、Google Books + openBD（+ N
   - 補完対象は最大30巻（`NDL_LOOKUP_MAX`）までに制限し、それでも見つからない巻は表紙なし・巻数のみで表示する
 - 上記3つの仲介は[manga-volume-lookup.service.ts](../src/app/core/external-media/manga-volume-lookup.service.ts)が担う
 
+## API組み合わせ表
+
+目的別に「どのAPIをどう組み合わせると何が手に入るか」をまとめる。開発者が機能追加・改善時に
+どのAPI呼び出しが必要かを逆引きする用途を想定している。
+
+| 組み合わせ | 対象 | 得られる情報 | 精度・限界 |
+| --- | --- | --- | --- |
+| AniListのみ | アニメ全般／作品検索全般 | タイトル（romaji/english/native）・表紙・話数サムネイル | 話タイトルは日本語なし（呼び出し側で「第N話」表記にフォールバック） |
+| AniList → Google Books | マンガの巻候補（一次情報源） | ISBN・巻数（タイトル文字列の正規表現推測）・表紙 | ヒット率は高いが、表紙の正確性と巻数抽出（表記揺れ）に誤りが残りうる |
+| 上記 + openBD | 巻の表紙・発売日を補完 | 日本語の正確な書誌情報（表紙・発売日） | 検索機能を持たないISBN一括取得専用のため単独では使えない（必ずGoogle Books/NDLとの組み合わせが前提） |
+| 上記 + NDL Search | Google Books+openBDでも欠けた巻の補完（フォールバック） | 構造化`dcndl:volume`フィールドによる高精度な巻数・ISBN | シリーズ判定自体はタイトル文字列の部分一致のみに依存（誤マッチのリスクは残る）。最大30巻・シリーズタイトルにつき1リクエストの制限あり |
+
+目的別の逆引き:
+
+- **アニメの話数タイトルを日本語で正確に取得したい** → AniList単体では実現不可（話タイトルを
+  保持していない）。日本のアニメ特化DBであるAnnict API等の追加実装が必要
+  （[アーキテクチャ評価と改善方向](#アーキテクチャ評価と改善方向)・[todo.md](todo.md)参照）。
+- **マンガの巻表紙の精度を上げたい** → Google Books単体は表紙のヒット率は高いが精度に劣るため、
+  openBD・NDL Searchまで組み合わせて`variantCoverImageUrls`で副候補を保持する現行構成が前提。
+  openBD/NDLを省略すると表紙のヒット率・精度双方が下がる。
+- **同名・類似タイトル作品の誤混入を減らしたい** → 現状は文字列部分一致のみに依存するため、
+  ID同士の相互リンクが無い限り根本解決は難しい（[アーキテクチャ評価と改善方向](#アーキテクチャ評価と改善方向)参照）。
+- **API呼び出し回数・レート制限を抑えたい** → NDL Searchはシリーズタイトルにつき1リクエストに
+  まとめる設計、openBDは30件チャンク化と、いずれも呼び出し元でバッチ化されている。追加でAPIを
+  絡める場合もこの粒度を踏襲する。
+
 ## 依存関係（マンガ選択時のみ）
 
 `work-import-search.service.ts` の `loadCandidatesFor()` を見ると、マンガを選んだ場合は次の流れになる。
@@ -128,3 +154,49 @@ Google Books・NDLともAniListのメディアIDのような相互リンクを�
 戻り値`DuplicateWorkMatch[]`は`{ work: Work; matchType: 'externalId' | 'title' }`の配列。
 呼び出し元は`work-import.ts`の`selectWork()`（65〜70行）で、結果はUI上の警告バナー表示のみに使われ、
 `confirmImport()`側にガードは無いため、**ユーザーは警告を見た上でも取り込みを続行できる**（非ブロッキング）。
+
+## アーキテクチャ評価と改善方向
+
+### 現状の構造
+
+[manga-volume-lookup.service.ts](../src/app/core/external-media/manga-volume-lookup.service.ts)は
+Provider/Strategyのような抽象を持たず、Google Books→openBD→NDL→openBDという優先順位を
+サービス本体に直接ハードコードした逐次パイプラインである。`work-import-search.service.ts`側も
+メディア種別（`manga`/`anime`）のif分岐でAniList単体呼び出しとマンガパイプラインを切り替えるのみで、
+複数メディア種別・複数APIソースを統一的に扱うインターフェースは無い。
+
+### 妥当性評価
+
+- 現状のメディア種別（manga/anime）が2種、外部APIが4種という規模では、逐次パイプラインは
+  可読性が高く、抽象化コストを避けている点で妥当な設計である。
+- 一方、[todo.md](todo.md)に挙がっている書籍・映画への拡張、Annict等API追加、複数候補の
+  類似度スコアリング導入を見据えると、以下が将来のボトルネックになりうる。
+  - 優先順位が呼び出し元にハードコードされており、API追加のたびに
+    `manga-volume-lookup.service.ts`本体を書き換える必要がある（Open-Closed原則に反する）
+  - 巻マージロジック（`mergeAndGroupByVolume`）の判定が単純な件数閾値
+    （`VOLUME_ISBN_WARNING_THRESHOLD`）のみで、類似度スコアリングを導入する際の
+    差し替え箇所が明確でない
+  - 巻データのキャッシュ（Firestore等）が無く、同一作品の再取り込みのたびに
+    Google Books/openBD/NDLへの問い合わせが重複発生する
+  - Google Books・NDLともAniListのメディアIDのような相互リンクを持たず、タイトル文字列の
+    部分一致のみで候補を絞り込んでいるため、同名・類似タイトル作品の誤混入リスクが
+    旧MangaDex実装（ID突合あり）より高い
+
+### 改善提案
+
+1. **Provider抽象の導入**: `ExternalVolumeSource`のような小さなインターフェース
+   （例: `fetch(seriesTitle): Observable<VolumeCandidate[]>`）を定義し、Google Books/openBD/NDLを
+   実装クラスとして統一する。優先順位配列を設定側に外出しすることで、Annict等の新規API追加時に
+   `manga-volume-lookup.service.ts`本体を書き換えずに済むようにする
+   （関連: [todo.md](todo.md)「アニメ話数のAnnict連携」）。
+2. **類似度スコアリングへの移行**: `mergeAndGroupByVolume`の判定ロジックをスコア関数として
+   抽出し、優先順位ベースの単純結合からレーベンシュタイン距離等による類似度スコアベースの
+   突合に段階的に移行できるようにする（関連: [todo.md](todo.md)「複数API結果の突合スコアリング」・
+   「NDL典拠IDを用いた名寄せ精度向上」）。
+3. **Firestoreキャッシュ層の追加**: `manga-volume-lookup.service.ts`と各APIサービスの間に
+   キャッシュ層を挟み、取り込み時にキャッシュヒットすればAPI呼び出しをスキップできるようにする。
+   API呼び出し回数の削減とレート制限（NDLの30件/リクエスト制限等）耐性の向上を両立する
+   （関連: [todo.md](todo.md)「巻データのFirestoreキャッシュ」）。
+
+いずれも現時点で着手が必要な規模ではなく、API種別・メディア種別が増えるタイミングで
+段階的に導入するのが妥当と考えられる。
