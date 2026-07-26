@@ -2,9 +2,11 @@
  * @file Google Books API（https://www.googleapis.com/books/v1）のクライアント。
  * マンガのシリーズタイトルで巻（書籍）を検索し、ISBNと巻数を抽出する。
  * Google Booksはタイトル文字列が「作品名 15」「作品名(15)」「作品名 第15巻」「作品名15(講談社コミックス)」
- * などの表記揺れを持つため、parseVolumeNumber()がタイトルからシリーズ名部分を取り除いた残り文字列の
- * 先頭付近を正規表現で解析して巻数を抽出する（末尾に出版社レーベル名等の付加情報が続いても拾えるようにする
- * ため、末尾一致ではなく先頭一致を基本にしている）。シリーズ名の除去に失敗した場合は末尾一致パターンに
+ * 「作品名―カナ副題―(15) (レーベル名)」などの表記揺れを持つため、parseVolumeNumber()がタイトルから
+ * シリーズ名部分を取り除いた残り文字列の先頭付近を正規表現で解析して巻数を抽出する（末尾に出版社レーベル名等
+ * の付加情報が続いても拾えるようにするため、末尾一致ではなく先頭一致を基本にしている）。シリーズ名直後に
+ * カナ副題等が挟まり先頭一致が失敗する場合は、残り文字列中から区切り文字に囲まれた最初の巻数トークンを
+ * 拾うフォールバック（MID_VOLUME_PATTERNS）を試す。シリーズ名の除去自体に失敗した場合は末尾一致パターンに
  * フォールバックする。抽出できない候補は誤った巻番号を混入させるより除外する（欠落を優先）。
  * また、無関係な同名短縮タイトル作品の混入を防ぐため、シリーズタイトルと
  * 正規化した書籍タイトル（記号除去・小文字化）で部分一致する候補のみ採用する。AniListのメディアIDのような
@@ -39,7 +41,16 @@ const MAX_ITEMS = 400;
 const PREFIX_VOLUME_PATTERNS = [
   /^\s*第?\s*(\d+(?:\.\d+)?)\s*巻/,
   /^\s*[([（]\s*(\d+(?:\.\d+)?)\s*[)\])）]/,
-  /^[\s:：\-–—.、,]*(\d+(?:\.\d+)?)(?!\d)/,
+  /^[\s:：\-–—―.、,]*(\d+(?:\.\d+)?)(?!\d)/,
+];
+
+// シリーズ名直後にカナ副題等が挟まり先頭一致に失敗した場合のフォールバック。
+// 残り文字列中から、直前直後が区切り文字（空白・ダッシュ類・括弧・句読点）または
+// 文字列端である巻数トークンを最初に探す（副題部分の文字はスキップできる）。
+const MID_VOLUME_PATTERNS = [
+  /(?:^|[\s:：\-–—―.、,（(])第\s*(\d+(?:\.\d+)?)\s*巻/,
+  /(?:^|[\s:：\-–—―.、,])[([（]\s*(\d+(?:\.\d+)?)\s*[)\])）]/,
+  /(?:^|[\s:：\-–—―.、,])(\d+(?:\.\d+)?)(?=[\s:：\-–—―.、,)\])）]|$)/,
 ];
 
 // シリーズ名の除去に失敗した場合のフォールバック（タイトル末尾一致）。
@@ -111,6 +122,8 @@ function parseVolumeNumber(volumeInfo: GoogleBooksVolumeInfo, seriesTitle: strin
     const remainder = text.slice(seriesMatch.index + seriesMatch[0].length);
     const number = matchFirst(remainder, PREFIX_VOLUME_PATTERNS);
     if (number != null) return number;
+    const midNumber = matchFirst(remainder, MID_VOLUME_PATTERNS);
+    if (midNumber != null) return midNumber;
   }
   return matchFirst(text, SUFFIX_VOLUME_PATTERNS);
 }

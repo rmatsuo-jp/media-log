@@ -108,6 +108,35 @@ describe('GoogleBooksApiService', () => {
     ]);
   });
 
+  it('シリーズ名とカナ副題の後に巻数・出版社レーベル名が続く表記でも巻数を抽出する', () => {
+    let result: unknown;
+    service.searchVolumes('NARUTO').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne((r) =>
+      r.urlWithParams.startsWith('https://www.googleapis.com/books/v1/volumes?'),
+    );
+    req.flush({
+      items: [
+        {
+          volumeInfo: {
+            title: 'NARUTO―ナルト―(1) (集英社コミックス)',
+            industryIdentifiers: [{ type: 'ISBN_13', identifier: '9784000000201' }],
+          },
+        },
+      ],
+    });
+
+    expect(result).toEqual([
+      {
+        isbn13: '9784000000201',
+        isbn10: undefined,
+        volumeNumber: 1,
+        title: 'NARUTO―ナルト―(1) (集英社コミックス)',
+        coverImageUrl: undefined,
+      },
+    ]);
+  });
+
   it('全角数字の巻数表記（１巻）でも巻数を抽出する', () => {
     let result: unknown;
     service.searchVolumes('ぼっち・ざ・ろっく！').subscribe((r) => (result = r));
