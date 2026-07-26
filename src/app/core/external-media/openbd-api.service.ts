@@ -5,10 +5,12 @@
  * （manga-volume-lookup.service.ts が両者を仲介する）。
  * URL長の上限を考慮しISBNを30件ずつチャンク化してforkJoinで並列取得し、該当なし（null）の要素を除いた
  * ISBN→書誌情報のMapに正規化する。
+ * retry()後もエラーの場合は空Mapを返す（呼び出し側manga-volume-lookup.service.tsではopenBDはGoogle Books
+ * の補完情報という位置づけのため、openBD障害でGoogle Books側の候補まで巻き込んで消さないようにする）。
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, of, retry } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, retry } from 'rxjs';
 
 const OPENBD_API = 'https://api.openbd.jp/v1/get';
 const CHUNK_SIZE = 30;
@@ -65,6 +67,7 @@ export class OpenBdApiService {
         }
         return map;
       }),
+      catchError(() => of(new Map<string, OpenBdBookInfo>())),
     );
   }
 }

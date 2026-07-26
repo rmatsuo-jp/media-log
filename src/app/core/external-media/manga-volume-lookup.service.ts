@@ -3,7 +3,9 @@
  * を検索し、得られたISBN群をopenBDに渡して日本語の正確な書誌情報（表紙・発売日）で補完する。
  * MangaDex時代のsearchManga→getVolumesの2段構成に相当する。ユーザーが選べる表紙候補を増やすため、
  * openBD・Google Books双方に表紙があれば両方をvariantCoverImageUrlsへ積む（片方のみ採用せず捨てない）。
- * 主表紙（coverImageUrl）はopenBD優先とする。同一巻番号に複数ISBNマッチがある場合も同様に集約する
+ * 主表紙（coverImageUrl）はGoogle Books優先とする（openBDは日本語書誌としては正確だが未収載の巻が
+ * 多く取得率で劣るため、より広くヒットするGoogle Books側を優先し、openBDは追加の代替候補として積む）。
+ * 同一巻番号に複数ISBNマッチがある場合も同様に集約する
  * （MangaDexのMap<number, string[]>集約パターンを踏襲）。UIでは巻数のみを表示しタイトル文字列は使わない
  * ため、ExternalUnitCandidateにtitleは持たせない。
  * それでも表紙が見つからない巻（Google Books側にISBNが無い、またはopenBDに該当レコードが無い）については、
@@ -16,6 +18,7 @@
  * さらに、検索結果に含まれる整数巻の最大値（最新刊数の目安）までの巻数を1巻から欠番なく生成する
  * （fillMissingVolumes）。小数巻（特別編等）は生成対象に含めず、見つかった分のみ追加する。
  * Google Books側が0件の場合は例外を投げず空配列を返す。
+ * NDL検索対象の欠番数に上限は設けない（NDLは1リクエストで完結する設計のため）。
  */
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap } from 'rxjs';
@@ -24,8 +27,6 @@ import { GoogleBooksApiService, GoogleBooksVolumeMatch } from './google-books-ap
 import { NdlApiService } from './ndl-api.service';
 import { OpenBdApiService, OpenBdBookInfo } from './openbd-api.service';
 
-const NDL_LOOKUP_MAX = 30;
-
 function mergeAndGroupByVolume(
   matches: GoogleBooksVolumeMatch[],
   openBdByIsbn: Map<string, OpenBdBookInfo>,
@@ -33,7 +34,7 @@ function mergeAndGroupByVolume(
   const byVolume = new Map<number, string[]>();
   for (const match of matches) {
     const openBd = match.isbn13 ? openBdByIsbn.get(match.isbn13) : undefined;
-    const candidateUrls = [openBd?.coverImageUrl, match.coverImageUrl].filter(
+    const candidateUrls = [match.coverImageUrl, openBd?.coverImageUrl].filter(
       (url): url is string => !!url,
     );
     if (candidateUrls.length === 0) continue;
@@ -60,7 +61,7 @@ function missingVolumeNumbers(
   for (let number = 1; number <= latestVolume; number++) {
     if (!byVolume.has(number)) missing.push(number);
   }
-  return missing.slice(0, NDL_LOOKUP_MAX);
+  return missing;
 }
 
 function fillMissingVolumes(

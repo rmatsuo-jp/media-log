@@ -53,7 +53,7 @@ describe('MangaVolumeLookupService', () => {
     ]);
   });
 
-  it('openBDの表紙を優先しつつGoogle Books側の表紙も候補として残し、同一巻の複数候補はvariantCoverImageUrlsに集約する', () => {
+  it('Google Booksの表紙を優先しつつopenBD側の表紙も候補として残し、同一巻の複数候補はvariantCoverImageUrlsに集約する', () => {
     googleBooks.searchVolumes.mockReturnValue(
       of([
         {
@@ -87,10 +87,10 @@ describe('MangaVolumeLookupService', () => {
     expect(result).toEqual([
       {
         number: 1,
-        coverImageUrl: 'https://example.com/ob-1.jpg',
+        coverImageUrl: 'https://example.com/gb-1.jpg',
         variantCoverImageUrls: [
-          'https://example.com/ob-1.jpg',
           'https://example.com/gb-1.jpg',
+          'https://example.com/ob-1.jpg',
           'https://example.com/gb-1b.jpg',
         ],
       },

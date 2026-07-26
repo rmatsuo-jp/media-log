@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -57,5 +58,25 @@ describe('OpenBdApiService', () => {
 
     httpMock.expectNone(() => true);
     expect(result).toEqual(new Map());
+  });
+
+  it('retry後もリクエストが失敗し続けた場合はエラーを伝播せず空のMapを返す', () => {
+    vi.useFakeTimers();
+    let result: Map<string, unknown> | undefined;
+    let error: unknown;
+    service.getByIsbns(['9784000000001']).subscribe({
+      next: (r) => (result = r),
+      error: (e) => (error = e),
+    });
+
+    for (let i = 0; i < 3; i++) {
+      const req = httpMock.expectOne((r) => r.url.startsWith('https://api.openbd.jp/v1/get'));
+      req.flush('error', { status: 500, statusText: 'Server Error' });
+      vi.advanceTimersByTime(1000);
+    }
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual(new Map());
+    vi.useRealTimers();
   });
 });
