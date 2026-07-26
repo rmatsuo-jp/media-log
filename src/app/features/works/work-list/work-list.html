@@ -120,6 +120,16 @@
           }
         </div>
       }
+      @if (mergeCandidates().length > 0) {
+        <div class="merge-candidates">
+          <p class="hint">タイトルが一致する重複作品が見つかりました。統合しますか？</p>
+          @for (candidate of mergeCandidates(); track candidate.id) {
+            <button class="theme-btn" type="button" (click)="mergeIntoFromMenu(candidate)">
+              「{{ candidate.title }}」に統合
+            </button>
+          }
+        </div>
+      }
       <button class="btn-secondary" type="button" (click)="deleteWorkFromMenu()">作品を削除</button>
     </app-modal>
   }

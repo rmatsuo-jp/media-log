@@ -160,4 +160,34 @@ describe('MediaRepositoryService', () => {
     repo.incrementUnitViewCount(updated);
     expect(repo.units().find((x) => x.id === u.id)?.viewCount).toBe(2);
   });
+
+  describe('mergeWorkInto()', () => {
+    it('sourceの配下Group/Unitをtargetへ付け替え、sourceをtombstone化する', () => {
+      const source = repo.createWork({ mediaType: 'manga', title: 'NARUTO', wantToConsume: false });
+      const target = repo.createWork({
+        mediaType: 'manga',
+        title: 'NARUTO -ナルト-',
+        wantToConsume: false,
+      });
+      const store = TestBed.inject(MediaStoreService);
+      store.saveGroup(group({ id: 'g1', workId: source.id }));
+      store.saveUnit(unit({ id: 'u1', groupId: 'g1', workId: source.id }));
+      syncStub.pushWorks.mockClear();
+
+      repo.mergeWorkInto(source.id, target.id);
+
+      expect(repo.groups().find((g) => g.id === 'g1')?.workId).toBe(target.id);
+      expect(repo.units().find((u) => u.id === 'u1')?.workId).toBe(target.id);
+      expect(repo.works().map((w) => w.id)).toEqual([target.id]);
+      expect(syncStub.pushWorks).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id: source.id, deleted: true })]),
+      );
+      expect(syncStub.pushGroups).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id: 'g1', workId: target.id })]),
+      );
+      expect(syncStub.pushUnits).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ id: 'u1', workId: target.id })]),
+      );
+    });
+  });
 });

@@ -3,8 +3,10 @@
  * 読みたいリストは独立ページ（features/works/wishlist）に分離済み。
  * タイトル右の共通トグル（MediaTypeToggle）で一覧のmediaType絞り込みと、追加フォームの検索絞り込みを
  * 同一signalで兼用する（非永続のローカルsignal）。
- * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替えと作品削除を
- * 行えるメニュー（Modal+CoverTile）を開く。削除は共通ConfirmDialogで確認する。
+ * 作品カバーを右クリックすると、表紙候補（coverImageCandidates）の切り替え・作品削除・
+ * タイトルが一致する重複作品との統合（WorksStateService.findTitleMatchCandidates/mergeWorks）を
+ * 行えるメニュー（Modal+CoverTile）を開く。削除・統合は共通ConfirmDialogで確認する
+ * （統合すると開いていた作品=統合元は削除され、選んだ相手=統合先に巻/グループが移る）。
  * 各カードには次に見るべき未読巻/話（WorksStateService.nextUnreadUnit）をバッジで表示し、
  * 全巻既読（WorksStateService.isFullyRead）の場合は代わりに「既読」バッジを表示する。
  * 絞り込み後の作品数・巻/話数合計を表示し、ページサイズ選択＋前/次ページ切り替えでグリッド表示件数を制御する。
@@ -91,6 +93,11 @@ export class WorkList {
 
   protected coverPickerWork = signal<Work | null>(null);
 
+  protected mergeCandidates = computed(() => {
+    const work = this.coverPickerWork();
+    return work ? this.state.findTitleMatchCandidates(work) : [];
+  });
+
   // 作品カバーの右クリックメニュー（表紙候補切り替え＋削除）。候補数に関わらず常に開く。
   onWorkCoverContextMenu(event: MouseEvent, work: Work) {
     event.preventDefault();
@@ -128,5 +135,16 @@ export class WorkList {
   confirmPendingDelete() {
     this.pendingDelete()?.onConfirm();
     this.pendingDelete.set(null);
+  }
+
+  mergeIntoFromMenu(target: Work) {
+    const source = this.coverPickerWork();
+    if (!source) return;
+    this.coverPickerWork.set(null);
+    this.pendingDelete.set({
+      title: '重複作品を統合',
+      message: `「${source.title}」を「${target.title}」に統合しますか？（「${source.title}」は削除され、配下の巻/グループは「${target.title}」に移動します）`,
+      onConfirm: () => this.state.mergeWorks(target, source),
+    });
   }
 }

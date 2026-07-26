@@ -205,6 +205,36 @@ describe('WorksStateService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('片方に副題が付くだけの表記ゆれ（部分一致）も検知する', () => {
+      const w = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO' });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ externalId: 'other', title: 'NARUTO', titleNative: 'NARUTO -ナルト-' }),
+      );
+
+      expect(result).toEqual([{ work: w, matchType: 'title' }]);
+    });
+  });
+
+  describe('findTitleMatchCandidates()', () => {
+    it('同一mediaTypeでタイトルが部分一致する他Workを返す（自身は除外）', () => {
+      const w1 = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO' });
+      const w2 = work({ id: 'w2', mediaType: 'manga', title: 'NARUTO -ナルト-' });
+      const w3 = work({ id: 'w3', mediaType: 'manga', title: '無関係' });
+      const state = setup([w1, w2, w3], []);
+
+      expect(state.findTitleMatchCandidates(w1).map((w) => w.id)).toEqual(['w2']);
+    });
+
+    it('mediaTypeが異なるWorkは候補に含めない', () => {
+      const w1 = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO' });
+      const w2 = work({ id: 'w2', mediaType: 'anime', title: 'NARUTO -ナルト-' });
+      const state = setup([w1, w2], []);
+
+      expect(state.findTitleMatchCandidates(w1)).toEqual([]);
+    });
   });
 
   describe('書き込み系メソッド', () => {
@@ -223,6 +253,7 @@ describe('WorksStateService', () => {
         toggleUnitViewed: vi.fn(),
         incrementUnitViewCount: vi.fn(),
         deleteUnit: vi.fn(),
+        mergeWorkInto: vi.fn(),
       };
       TestBed.configureTestingModule({
         providers: [WorksStateService, { provide: MediaRepositoryService, useValue: repoStub }],
@@ -296,6 +327,16 @@ describe('WorksStateService', () => {
 
       state.deleteUnit('u1');
       expect(repoStub.deleteUnit).toHaveBeenCalledWith('u1');
+    });
+
+    it('mergeWorks()はremoveWork.idからkeepWork.idへのマージをrepo.mergeWorkIntoに委譲する', () => {
+      const { state, repoStub } = setupWithRepoSpy();
+      const keep = work({ id: 'w-keep' });
+      const remove = work({ id: 'w-remove' });
+
+      state.mergeWorks(keep, remove);
+
+      expect(repoStub.mergeWorkInto).toHaveBeenCalledWith('w-remove', 'w-keep');
     });
   });
 });

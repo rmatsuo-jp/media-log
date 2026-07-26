@@ -56,6 +56,33 @@ export class MediaRepositoryService {
     this.sync.pushUnits(units.map((u) => ({ ...u, deleted: true })));
   }
 
+  // 重複作品の統合: sourceId配下の全Group/UnitをtargetIdへ付け替えたうえでsourceIdをtombstone化する
+  // （deleteWorkと異なりGroup/Unit自体は削除しない）。
+  mergeWorkInto(sourceId: string, targetId: string): void {
+    const now = nowIso();
+    const groups = this.store
+      .allGroups()
+      .filter((g) => !g.deleted && g.workId === sourceId)
+      .map((g) => ({ ...g, workId: targetId, updatedAt: now }));
+    groups.forEach((g) => this.store.saveGroup(g));
+    this.sync.pushGroups(groups);
+
+    const groupIds = new Set(groups.map((g) => g.id));
+    const units = this.store
+      .allUnits()
+      .filter((u) => !u.deleted && groupIds.has(u.groupId))
+      .map((u) => ({ ...u, workId: targetId, updatedAt: now }));
+    units.forEach((u) => this.store.saveUnit(u));
+    this.sync.pushUnits(units);
+
+    const source = this.store.allWorks().find((w) => w.id === sourceId);
+    if (source) {
+      const deleted: Work = { ...source, deleted: true, updatedAt: now };
+      this.store.saveWork(deleted);
+      this.sync.pushWorks([deleted]);
+    }
+  }
+
   // ── Group ────────────────────────────────────────────────────────
   createGroup(
     input: Pick<Group, 'workId' | 'order' | 'title' | 'wantToConsume'> &

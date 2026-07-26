@@ -7,14 +7,17 @@
  * nextUnreadUnit()はGroup.order→Unit.numberの順で最初の未読Unitを返す（次に見るべき巻/話の算出）。
  * unitCountForWork()は作品配下の全Unit数（巻/話数の合計）を返す。
  * findPossibleDuplicates()は外部検索結果の取り込み前に既存Workとの重複を検知する
- * （externalId+externalSource一致を最優先、無ければタイトル正規化文字列の完全一致にフォールバック。
- * あいまい類似度計算は行わない）。
+ * （externalId+externalSource一致を最優先、無ければタイトル正規化文字列の部分一致にフォールバック。
+ * 「NARUTO」/「NARUTO -ナルト-」のような片方に副題が付くだけの表記ゆれも拾うためtitlesMatchを使う）。
+ * findTitleMatchCandidates()は既存Work同士の重複統合UI（work-list）向けに、指定Workとタイトルが
+ * 一致する他Workを探す。mergeWorks()は統合元Workの配下Group/Unitをrepo.mergeWorkIntoで統合先へ
+ * 付け替えたうえで統合元をtombstone化する。
  */
 import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
 import { MediaRepositoryService } from '@core/media/media-repository.service';
 import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
-import { normalizeTitle } from '@core/external-media/title-normalize.util';
+import { titlesMatch } from '@core/external-media/title-normalize.util';
 
 export interface DuplicateWorkMatch {
   work: Work;
@@ -104,11 +107,23 @@ export class WorksStateService {
     );
     if (byExternalId) return [{ work: byExternalId, matchType: 'externalId' }];
 
-    const targetTitle = normalizeTitle(result.titleNative ?? result.title);
+    const targetTitle = result.titleNative ?? result.title;
     return this.works()
       .filter((w) => !w.deleted && w.mediaType === result.mediaType)
-      .filter((w) => normalizeTitle(w.title) === targetTitle)
+      .filter((w) => titlesMatch(w.title, targetTitle))
       .map((work) => ({ work, matchType: 'title' as const }));
+  }
+
+  // work-listの表紙右クリックメニュー（重複統合）向け: 指定Workとタイトルが一致する他Work一覧。
+  findTitleMatchCandidates(work: Work): Work[] {
+    return this.works().filter(
+      (w) => w.id !== work.id && !w.deleted && w.mediaType === work.mediaType && titlesMatch(w.title, work.title),
+    );
+  }
+
+  // removeWork配下のGroup/UnitをすべてkeepWorkへ付け替えたうえでremoveWorkを削除する。
+  mergeWorks(keepWork: Work, removeWork: Work): void {
+    this.repo.mergeWorkInto(removeWork.id, keepWork.id);
   }
 
   // ── 書き込み系（すべてrepositoryへ委譲、コンポーネントは薄く保つ） ──

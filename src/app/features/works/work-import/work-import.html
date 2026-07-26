@@ -143,7 +143,7 @@
     @if (duplicateMatches().length > 0) {
       <p class="hint error-text">
         既にこの作品は登録されています（{{ duplicateMatches()[0].work.title }}）。
-        新規に取り込むと別作品として重複登録されます。
+        「既存作品に追加」を選ぶと新規Workを作らずこの作品に巻/話数を追加します。
       </p>
     }
 
@@ -238,7 +238,16 @@
     }
 
     <div class="work-actions">
-      <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
+      @if (duplicateMatches().length > 0) {
+        <button class="btn-primary" type="button" (click)="importIntoExistingWork()">
+          既存作品に追加
+        </button>
+        <button class="theme-btn" type="button" (click)="confirmImport()">
+          新規作品として取り込む
+        </button>
+      } @else {
+        <button class="btn-primary" type="button" (click)="confirmImport()">取り込む</button>
+      }
     </div>
   }
 

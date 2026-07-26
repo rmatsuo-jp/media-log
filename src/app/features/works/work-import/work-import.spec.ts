@@ -92,6 +92,18 @@ describe('WorkImport', () => {
     expect(mapperStub.importWorkFromExternal).toHaveBeenCalled();
   });
 
+  it('importIntoExistingWork()は新規Workを作らず重複候補のworkIdへ取り込む', () => {
+    const existing = work({ id: 'w-existing' });
+    const dup = { work: existing, matchType: 'title' as const };
+    const { component, mapperStub } = setup([dup]);
+
+    component.selectWork(externalResult());
+    component.importIntoExistingWork();
+
+    expect(mapperStub.importWorkFromExternal).not.toHaveBeenCalled();
+    expect(component['duplicateMatches']()).toEqual([]);
+  });
+
   it('backToSearch()はduplicateMatchesをリセットする', () => {
     const dup = { work: work({}), matchType: 'title' as const };
     const { component } = setup([dup]);

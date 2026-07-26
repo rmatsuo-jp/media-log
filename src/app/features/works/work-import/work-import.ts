@@ -12,8 +12,10 @@
  * mediaType inputは呼び出し元（work-list）のトグル値を受け取り、effectでsearch.mediaTypeへ同期する
  * （自前のトグルUIは持たない）。
  * selectWork()時にWorksStateService.findPossibleDuplicates()で既存Workとの重複候補を検知し、
- * duplicateMatchesにセットする。候補読み込み自体はブロックせず、重複時はUI上で警告バナーを表示するのみで
- * confirmImport()にはガードを入れない（ユーザーが警告を見た上で続行するか判断する）。
+ * duplicateMatchesにセットする。候補読み込み自体はブロックしない。重複候補がある場合はUI上で警告バナーと
+ * 「既存作品に追加」ボタンを表示し、選ぶとconfirmImport()は新規Work作成をスキップして
+ * duplicateMatches()[0].workへ直接巻/話数グループを追加する（importIntoExistingWork()）。
+ * 重複候補があっても従来通り新規登録したい場合のために「新規作品として取り込む」導線も残す。
  */
 import {
   ChangeDetectionStrategy,
@@ -133,15 +135,31 @@ export class WorkImport {
     const result = this.selectedWork();
     if (!result) return;
     const work = this.mapper.importWorkFromExternal(result);
+    this.importSelectedUnits(work.id);
+    this.imported.emit(work);
+    this.finishImport();
+  }
+
+  // 重複候補（既存Work）に対して新規Workを作らず巻/話数グループのみを追加する。
+  importIntoExistingWork(): void {
+    const work = this.duplicateMatches()[0]?.work;
+    if (!work) return;
+    this.importSelectedUnits(work.id);
+    this.imported.emit(work);
+    this.finishImport();
+  }
+
+  private importSelectedUnits(workId: string): void {
     const chosen = this.search
       .visibleCandidates()
       .filter((c) => this.selectedNumbers().has(c.number))
       .map((c) => ({ ...c, coverImageUrl: this.search.coverUrlFor(c) }));
     if (chosen.length > 0) {
-      this.mapper.importUnitsAsGroup(work.id, this.groupTitle().trim() || '取り込み', chosen);
+      this.mapper.importUnitsAsGroup(workId, this.groupTitle().trim() || '取り込み', chosen);
     }
-    this.imported.emit(work);
+  }
 
+  private finishImport(): void {
     this.step.set('search');
     this.selectedWork.set(null);
     this.duplicateMatches.set([]);
