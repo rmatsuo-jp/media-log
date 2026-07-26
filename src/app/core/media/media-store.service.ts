@@ -1,17 +1,20 @@
 /**
- * @file Work/Group/Unit のローカル永続化を担うサービス。
+ * @file Series/Work/Group/Unit のローカル永続化を担うサービス。
  * 「localStorageへのCRUD」専任部分。MediaRepositoryService から利用される。Firestore同期は
  * media-firestore-sync.service.ts がこのサービスの signal を読み書きすることで担当し、
  * ここではクラウドの存在を意識しない。実体は core/persistence/tombstone-collection.store.ts の
- * 汎用storeを3つ（Work/Group/Unit）束ねたもの。
- * allWorks/allGroups/allUnits は tombstone（deleted=true）も含む全件の源泉。localStorage / Firestore と
- * 一致する。公開の works/groups/units は削除済みを除外したビューで、表示・集計はすべてこちらを基準にする。
+ * 汎用storeを4つ（Series/Work/Group/Unit）束ねたもの。
+ * allSeries/allWorks/allGroups/allUnits は tombstone（deleted=true）も含む全件の源泉。localStorage /
+ * Firestore と一致する。公開の series/works/groups/units は削除済みを除外したビューで、表示・集計は
+ * すべてこちらを基準にする。
  * Workを削除すると配下のGroup・Unitも連動してtombstone化する（カスケード削除）。
+ * Seriesを削除しても配下のWorkは削除せず、Work.seriesIdをunlinkするのみ（WorkはSeries非依存で成立する）。
  */
 import { Injectable } from '@angular/core';
-import { Group, Unit, Work } from '@core/models/media.model';
+import { Group, Series, Unit, Work } from '@core/models/media.model';
 import { createTombstoneCollectionStore } from '../persistence/tombstone-collection.store';
 
+const SERIES_KEY = 'media_series';
 const WORKS_KEY = 'media_works';
 const GROUPS_KEY = 'media_groups';
 const UNITS_KEY = 'media_units';
@@ -25,19 +28,26 @@ function notifyStorageFull(): void {
 
 @Injectable({ providedIn: 'root' })
 export class MediaStoreService {
+  private seriesStore = createTombstoneCollectionStore<Series>(SERIES_KEY, notifyStorageFull);
   private worksStore = createTombstoneCollectionStore<Work>(WORKS_KEY, notifyStorageFull);
   private groupsStore = createTombstoneCollectionStore<Group>(GROUPS_KEY, notifyStorageFull);
   private unitsStore = createTombstoneCollectionStore<Unit>(UNITS_KEY, notifyStorageFull);
 
+  readonly series = this.seriesStore.visible;
   readonly works = this.worksStore.visible;
   readonly groups = this.groupsStore.visible;
   readonly units = this.unitsStore.visible;
 
+  readonly allSeries = this.seriesStore.all;
   readonly allWorks = this.worksStore.all;
   readonly allGroups = this.groupsStore.all;
   readonly allUnits = this.unitsStore.all;
 
   // ── 書き込み系（保存・論理削除） ───────────────────────────────
+  persistSeries(series: Series[]): void {
+    this.seriesStore.persist(series);
+  }
+
   persistWorks(works: Work[]): void {
     this.worksStore.persist(works);
   }
@@ -48,6 +58,10 @@ export class MediaStoreService {
 
   persistUnits(units: Unit[]): void {
     this.unitsStore.persist(units);
+  }
+
+  saveSeries(series: Series): void {
+    this.seriesStore.save(series);
   }
 
   saveWork(work: Work): void {
@@ -83,5 +97,13 @@ export class MediaStoreService {
 
   deleteUnit(id: string): void {
     this.unitsStore.softDelete(id);
+  }
+
+  // Seriesの削除は配下Workを消さず、Work.seriesIdをunlinkするのみ（unlinkされたWorkを返す）。
+  deleteSeries(id: string): { works: Work[] } {
+    this.seriesStore.softDelete(id);
+    const works = this.allWorks().filter((w) => w.seriesId === id && !w.deleted);
+    this.persistWorks(this.allWorks().map((w) => (w.seriesId === id ? { ...w, seriesId: undefined } : w)));
+    return { works };
   }
 }

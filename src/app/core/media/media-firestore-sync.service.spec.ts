@@ -48,9 +48,11 @@ function work(partial: Partial<Work> = {}): Work {
 describe('MediaFirestoreSyncService', () => {
   let userSignal: ReturnType<typeof signal<User | null>>;
   let storeStub: {
+    allSeries: ReturnType<typeof vi.fn>;
     allWorks: ReturnType<typeof vi.fn>;
     allGroups: ReturnType<typeof vi.fn>;
     allUnits: ReturnType<typeof vi.fn>;
+    persistSeries: ReturnType<typeof vi.fn>;
     persistWorks: ReturnType<typeof vi.fn>;
     persistGroups: ReturnType<typeof vi.fn>;
     persistUnits: ReturnType<typeof vi.fn>;
@@ -61,9 +63,11 @@ describe('MediaFirestoreSyncService', () => {
     getDocsMock.mockReset().mockResolvedValue({ docs: [] });
     userSignal = signal<User | null>(null);
     storeStub = {
+      allSeries: vi.fn(() => []),
       allWorks: vi.fn(() => []),
       allGroups: vi.fn(() => []),
       allUnits: vi.fn(() => []),
+      persistSeries: vi.fn(),
       persistWorks: vi.fn(),
       persistGroups: vi.fn(),
       persistUnits: vi.fn(),

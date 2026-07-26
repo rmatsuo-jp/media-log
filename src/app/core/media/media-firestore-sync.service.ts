@@ -1,14 +1,14 @@
 /**
- * @file Work/Group/Unitの Firestore 双方向同期を担うサービス。
+ * @file Series/Work/Group/Unitの Firestore 双方向同期を担うサービス。
  * 「クラウド同期」専任部分。MediaStoreService の signal を読み書きし、ログイン状態（AuthService）を
  * 監視して、ログインした瞬間にクラウドと双方向同期する。実体は
- * core/persistence/tombstone-firestore-sync.ts の汎用同期を3つ（Work/Group/Unit）束ねたもの。
+ * core/persistence/tombstone-firestore-sync.ts の汎用同期を4つ（Series/Work/Group/Unit）束ねたもの。
  * 削除は物理削除せず deleted フラグ（tombstone）で表現し、削除も多端末へ伝播させる。
  * 同期失敗は syncError signal（読み取り専用）にメッセージを流す。push に失敗した分は
  * pendingPush に保持し、オンライン復帰（window の online イベント）時に自動で再送する。
  */
 import { computed, Injectable, inject } from '@angular/core';
-import { Group, Unit, Work } from '@core/models/media.model';
+import { Group, Series, Unit, Work } from '@core/models/media.model';
 import { AuthService } from '../firebase/auth.service';
 import { createTombstoneFirestoreSync } from '../persistence/tombstone-firestore-sync';
 import { MediaStoreService } from './media-store.service';
@@ -20,6 +20,15 @@ const LOG_LABEL = 'MediaFirestoreSyncService';
 export class MediaFirestoreSyncService {
   private auth = inject(AuthService);
   private store = inject(MediaStoreService);
+
+  private seriesSync = createTombstoneFirestoreSync<Series>({
+    auth: this.auth,
+    collectionName: 'series',
+    getAllLocal: () => this.store.allSeries(),
+    persistLocal: (merged) => this.store.persistSeries(merged),
+    errorMessage: SYNC_ERROR_MESSAGE,
+    logLabel: LOG_LABEL,
+  });
 
   private worksSync = createTombstoneFirestoreSync<Work>({
     auth: this.auth,
@@ -49,8 +58,16 @@ export class MediaFirestoreSyncService {
   });
 
   readonly syncError = computed(
-    () => this.worksSync.syncError() ?? this.groupsSync.syncError() ?? this.unitsSync.syncError(),
+    () =>
+      this.seriesSync.syncError() ??
+      this.worksSync.syncError() ??
+      this.groupsSync.syncError() ??
+      this.unitsSync.syncError(),
   );
+
+  pushSeries(series: Series[]): void {
+    this.seriesSync.push(series);
+  }
 
   pushWorks(works: Work[]): void {
     this.worksSync.push(works);
@@ -65,6 +82,7 @@ export class MediaFirestoreSyncService {
   }
 
   async syncFromCloud(uid: string): Promise<void> {
+    await this.seriesSync.syncFromCloud(uid);
     await this.worksSync.syncFromCloud(uid);
     await this.groupsSync.syncFromCloud(uid);
     await this.unitsSync.syncFromCloud(uid);

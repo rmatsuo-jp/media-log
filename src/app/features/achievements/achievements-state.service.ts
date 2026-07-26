@@ -47,6 +47,7 @@ export class AchievementsStateService {
     }
     const unitsByGroup = new Map<string, boolean[]>();
     for (const u of this.media.units()) {
+      if (!u.groupId) continue;
       const list = unitsByGroup.get(u.groupId) ?? [];
       list.push(u.viewed);
       unitsByGroup.set(u.groupId, list);

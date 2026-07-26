@@ -1,11 +1,11 @@
 /**
- * @file Work/Group/Unit永続化の窓口となるリポジトリサービス。
+ * @file Series/Work/Group/Unit永続化の窓口となるリポジトリサービス。
  * 「ローカル保存（MediaStoreService）→ クラウド反映（MediaFirestoreSyncService.push*）」の
  * 組み合わせを1箇所に集約し、書き込み系操作の呼び忘れによるクラウド乖離を防ぐ。
  * features/works はこのサービスのみをinjectする。
  */
 import { Injectable, inject } from '@angular/core';
-import { Group, Unit, Work } from '@core/models/media.model';
+import { Group, Series, Unit, Work } from '@core/models/media.model';
 import { nowIso } from '@shared/utils/date.util';
 import { MediaFirestoreSyncService } from './media-firestore-sync.service';
 import { MediaStoreService } from './media-store.service';
@@ -19,14 +19,40 @@ export class MediaRepositoryService {
   private store = inject(MediaStoreService);
   private sync = inject(MediaFirestoreSyncService);
 
+  readonly series = this.store.series;
   readonly works = this.store.works;
   readonly groups = this.store.groups;
   readonly units = this.store.units;
 
+  // ── Series ───────────────────────────────────────────────────────
+  createSeries(
+    input: Pick<Series, 'mediaType' | 'title' | 'wantToConsume'> & Partial<Pick<Series, 'coverImageUrl'>>,
+  ): Series {
+    const now = nowIso();
+    const series: Series = { id: newId(), createdAt: now, updatedAt: now, ...input };
+    this.store.saveSeries(series);
+    this.sync.pushSeries([series]);
+    return series;
+  }
+
+  updateSeries(series: Series): void {
+    const updated: Series = { ...series, updatedAt: nowIso() };
+    this.store.saveSeries(updated);
+    this.sync.pushSeries([updated]);
+  }
+
+  // Seriesの削除は配下Workを消さず、Work.seriesIdをunlinkするのみ。
+  deleteSeries(id: string): void {
+    const series = this.store.allSeries().find((s) => s.id === id);
+    const { works } = this.store.deleteSeries(id);
+    if (series) this.sync.pushSeries([{ ...series, deleted: true }]);
+    this.sync.pushWorks(works.map((w) => ({ ...w, seriesId: undefined })));
+  }
+
   // ── Work ─────────────────────────────────────────────────────────
   createWork(
     input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'> &
-      Partial<Pick<Work, 'externalSource' | 'externalId' | 'coverImageUrl'>>,
+      Partial<Pick<Work, 'seriesId' | 'externalSource' | 'externalId' | 'coverImageUrl'>>,
   ): Work {
     const now = nowIso();
     const work: Work = { id: newId(), createdAt: now, updatedAt: now, ...input };
@@ -70,7 +96,7 @@ export class MediaRepositoryService {
     const groupIds = new Set(groups.map((g) => g.id));
     const units = this.store
       .allUnits()
-      .filter((u) => !u.deleted && groupIds.has(u.groupId))
+      .filter((u) => !u.deleted && !!u.groupId && groupIds.has(u.groupId))
       .map((u) => ({ ...u, workId: targetId, updatedAt: now }));
     units.forEach((u) => this.store.saveUnit(u));
     this.sync.pushUnits(units);
