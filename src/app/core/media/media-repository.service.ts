@@ -52,7 +52,7 @@ export class MediaRepositoryService {
   // ── Work ─────────────────────────────────────────────────────────
   createWork(
     input: Pick<Work, 'mediaType' | 'title' | 'wantToConsume'> &
-      Partial<Pick<Work, 'seriesId' | 'externalSource' | 'externalId' | 'coverImageUrl'>>,
+      Partial<Pick<Work, 'seriesId' | 'titleAlt' | 'externalSource' | 'externalId' | 'coverImageUrl'>>,
   ): Work {
     const now = nowIso();
     const work: Work = { id: newId(), createdAt: now, updatedAt: now, ...input };

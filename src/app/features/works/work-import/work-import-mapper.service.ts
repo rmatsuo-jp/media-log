@@ -2,6 +2,8 @@
  * @file 外部API（AniList/Google Books/openBD）検索結果からWork/Groupへ取り込む際のドメインマッピング。
  * WorksStateServiceから分離: work-importフィーチャー固有の変換ロジックのみをここに持つ。
  * 作品タイトルは日本語（titleNative）を優先して保存する（アプリ全体で日本語表記を基本とする）。
+ * titleNativeとtitle（ローマ字/英語）が異なる場合、titleの方はtitleAltとして保持する
+ * （スクリプトをまたぐ重複検知に利用。works-state.service.tsのfindPossibleDuplicates参照）。
  */
 import { Injectable, inject } from '@angular/core';
 import { Group, Work } from '@core/models/media.model';
@@ -18,8 +20,10 @@ export class WorkImportMapperService {
   private state = inject(WorksStateService);
 
   importWorkFromExternal(result: ExternalWorkSearchResult): Work {
+    const title = result.titleNative ?? result.title;
     return this.repo.createWork({
-      title: result.titleNative ?? result.title,
+      title,
+      titleAlt: result.title !== title ? result.title : undefined,
       mediaType: result.mediaType,
       wantToConsume: false,
       externalSource: result.externalSource,

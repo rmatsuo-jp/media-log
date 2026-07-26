@@ -9,6 +9,8 @@
  * 型として許容する（movie は Group1件・Unit1件、book は manga と同形として扱う想定）。
  * Phase 2 では manga/anime のみ実装する。
  * 削除は物理削除せず deleted フラグ（tombstone）で表現し、Firestore同期でOR-mergeする。
+ * Work.titleAlt は外部API取り込み時に得られたローマ字/英語表記（titleと異なる場合のみ）。
+ * スクリプトをまたぐ重複検知（例:「ナルト」で登録済みの作品を"NARUTO"で再取り込みしようとした場合）に使う。
  * coverImageUrl は外部API連携（AniList/Google Books/openBD等）から取り込んだ表紙イラストのURL（任意）。
  * Unit.coverImageCandidates は取り込み時に見つかった同一巻の代替表紙候補。2件以上あれば
  * work-detail画面での右クリック切り替え（表紙ピッカー）が有効になる。
@@ -39,6 +41,7 @@ export interface Work {
   mediaType: MediaType;
   seriesId?: string; // 所属シリーズ（任意）。シリーズに属さないWorkも成立する
   title: string;
+  titleAlt?: string; // ローマ字/英語表記（titleと異なる場合のみ、外部取り込み時に設定）
   wantToConsume: boolean; // 作品レベルの「読みたい/観たい」
   externalSource?: string; // 外部API連携元（例: 'anilist'）
   externalId?: string;

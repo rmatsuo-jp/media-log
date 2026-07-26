@@ -9,6 +9,9 @@
  * findPossibleDuplicates()は外部検索結果の取り込み前に既存Workとの重複を検知する
  * （externalId+externalSource一致を最優先、無ければタイトル正規化文字列の部分一致にフォールバック。
  * 「NARUTO」/「NARUTO -ナルト-」のような片方に副題が付くだけの表記ゆれも拾うためtitlesMatchを使う）。
+ * titleAlt（ローマ字/英語表記）にも対応するため、既存Work・取り込み候補それぞれのtitle/titleAlt
+ * を総当たりで比較するtitlesMatchAny()を使う。これにより「ナルト」で登録済みの作品に
+ * "NARUTO"で再取り込みしようとした場合も同一作品として検出できる。
  * findTitleMatchCandidates()は既存Work同士の重複統合UI（work-list）向けに、指定Workとタイトルが
  * 一致する他Workを探す。mergeWorks()は統合元Workの配下Group/Unitをrepo.mergeWorkIntoで統合先へ
  * 付け替えたうえで統合元をtombstone化する。
@@ -22,6 +25,13 @@ import { titlesMatch } from '@core/external-media/title-normalize.util';
 export interface DuplicateWorkMatch {
   work: Work;
   matchType: 'externalId' | 'title';
+}
+
+// title/titleAlt（ローマ字/英語表記）を総当たりで比較し、いずれかの組み合わせが一致すればtrue。
+function titlesMatchAny(aTitle: string, aAlt: string | undefined, bTitle: string, bAlt?: string): boolean {
+  const as = [aTitle, aAlt].filter((t): t is string => !!t);
+  const bs = [bTitle, bAlt].filter((t): t is string => !!t);
+  return as.some((a) => bs.some((b) => titlesMatch(a, b)));
 }
 
 // 「読みたい」ビューに出す1行。work.wantToConsumeがtrueなら全グループを、falseなら
@@ -108,16 +118,21 @@ export class WorksStateService {
     if (byExternalId) return [{ work: byExternalId, matchType: 'externalId' }];
 
     const targetTitle = result.titleNative ?? result.title;
+    const targetTitleAlt = result.title !== targetTitle ? result.title : undefined;
     return this.works()
       .filter((w) => !w.deleted && w.mediaType === result.mediaType)
-      .filter((w) => titlesMatch(w.title, targetTitle))
+      .filter((w) => titlesMatchAny(w.title, w.titleAlt, targetTitle, targetTitleAlt))
       .map((work) => ({ work, matchType: 'title' as const }));
   }
 
   // work-listの表紙右クリックメニュー（重複統合）向け: 指定Workとタイトルが一致する他Work一覧。
   findTitleMatchCandidates(work: Work): Work[] {
     return this.works().filter(
-      (w) => w.id !== work.id && !w.deleted && w.mediaType === work.mediaType && titlesMatch(w.title, work.title),
+      (w) =>
+        w.id !== work.id &&
+        !w.deleted &&
+        w.mediaType === work.mediaType &&
+        titlesMatchAny(w.title, w.titleAlt, work.title, work.titleAlt),
     );
   }
 
