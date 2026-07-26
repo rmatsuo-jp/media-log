@@ -6,10 +6,20 @@
  * features/works/work-import/work-import-mapper.service.ts に分離している。
  * nextUnreadUnit()はGroup.order→Unit.numberの順で最初の未読Unitを返す（次に見るべき巻/話の算出）。
  * unitCountForWork()は作品配下の全Unit数（巻/話数の合計）を返す。
+ * findPossibleDuplicates()は外部検索結果の取り込み前に既存Workとの重複を検知する
+ * （externalId+externalSource一致を最優先、無ければタイトル正規化文字列の完全一致にフォールバック。
+ * あいまい類似度計算は行わない）。
  */
 import { computed, Injectable, inject } from '@angular/core';
 import { Group, MediaType, Unit, Work } from '@core/models/media.model';
 import { MediaRepositoryService } from '@core/media/media-repository.service';
+import { ExternalWorkSearchResult } from '@core/external-media/external-media.model';
+import { normalizeTitle } from '@core/external-media/title-normalize.util';
+
+export interface DuplicateWorkMatch {
+  work: Work;
+  matchType: 'externalId' | 'title';
+}
 
 // 「読みたい」ビューに出す1行。work.wantToConsumeがtrueなら全グループを、falseなら
 // wantToConsumeなグループのみを visibleGroups として持つ。
@@ -84,6 +94,21 @@ export class WorksStateService {
 
   unitCountForWork(workId: string): number {
     return this.units().filter((u) => u.workId === workId).length;
+  }
+
+  // externalId一致を最優先、無ければタイトル正規化完全一致で既存Workとの重複候補を探す。
+  findPossibleDuplicates(result: ExternalWorkSearchResult): DuplicateWorkMatch[] {
+    const byExternalId = this.works().find(
+      (w) =>
+        !w.deleted && w.externalSource === result.externalSource && w.externalId === result.externalId,
+    );
+    if (byExternalId) return [{ work: byExternalId, matchType: 'externalId' }];
+
+    const targetTitle = normalizeTitle(result.titleNative ?? result.title);
+    return this.works()
+      .filter((w) => !w.deleted && w.mediaType === result.mediaType)
+      .filter((w) => normalizeTitle(w.title) === targetTitle)
+      .map((work) => ({ work, matchType: 'title' as const }));
   }
 
   // ── 書き込み系（すべてrepositoryへ委譲、コンポーネントは薄く保つ） ──

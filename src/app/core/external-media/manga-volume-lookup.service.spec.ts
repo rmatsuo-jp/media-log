@@ -49,7 +49,13 @@ describe('MangaVolumeLookupService', () => {
     service.getVolumes('鬼滅の刃').subscribe((r) => (result = r));
 
     expect(result).toEqual([
-      { number: 1, coverImageUrl: undefined, variantCoverImageUrls: undefined },
+      {
+        number: 1,
+        coverImageUrl: undefined,
+        variantCoverImageUrls: undefined,
+        isbns: ['9784000000001'],
+        volumeNumberWarning: undefined,
+      },
     ]);
   });
 
@@ -93,6 +99,8 @@ describe('MangaVolumeLookupService', () => {
           'https://example.com/ob-1.jpg',
           'https://example.com/gb-1b.jpg',
         ],
+        isbns: ['9784000000001', '9784000000002'],
+        volumeNumberWarning: undefined,
       },
     ]);
   });
@@ -127,6 +135,8 @@ describe('MangaVolumeLookupService', () => {
         number: 1,
         coverImageUrl: 'https://example.com/same.jpg',
         variantCoverImageUrls: ['https://example.com/same.jpg'],
+        isbns: ['9784000000001'],
+        volumeNumberWarning: undefined,
       },
     ]);
   });
@@ -159,16 +169,22 @@ describe('MangaVolumeLookupService', () => {
       number: 1,
       coverImageUrl: 'https://example.com/1.jpg',
       variantCoverImageUrls: ['https://example.com/1.jpg'],
+      isbns: ['9784000000001'],
+      volumeNumberWarning: undefined,
     });
     expect(candidates[12]).toEqual({
       number: 13,
       coverImageUrl: undefined,
       variantCoverImageUrls: undefined,
+      isbns: undefined,
+      volumeNumberWarning: undefined,
     });
     expect(candidates[38]).toEqual({
       number: 39,
       coverImageUrl: 'https://example.com/39.jpg',
       variantCoverImageUrls: ['https://example.com/39.jpg'],
+      isbns: ['9784000000039'],
+      volumeNumberWarning: undefined,
     });
   });
 
@@ -208,11 +224,15 @@ describe('MangaVolumeLookupService', () => {
         number: 1,
         coverImageUrl: 'https://example.com/1.jpg',
         variantCoverImageUrls: ['https://example.com/1.jpg'],
+        isbns: ['9784000000001'],
+        volumeNumberWarning: undefined,
       },
       {
         number: 2,
         coverImageUrl: 'https://example.com/ndl-2.jpg',
         variantCoverImageUrls: ['https://example.com/ndl-2.jpg'],
+        isbns: ['9784000000002', '9999999999999'],
+        volumeNumberWarning: undefined,
       },
     ]);
   });
@@ -226,8 +246,20 @@ describe('MangaVolumeLookupService', () => {
     service.getVolumes('作品').subscribe((r) => (result = r));
 
     expect(result).toEqual([
-      { number: 1, coverImageUrl: undefined, variantCoverImageUrls: undefined },
-      { number: 2, coverImageUrl: undefined, variantCoverImageUrls: undefined },
+      {
+        number: 1,
+        coverImageUrl: undefined,
+        variantCoverImageUrls: undefined,
+        isbns: undefined,
+        volumeNumberWarning: undefined,
+      },
+      {
+        number: 2,
+        coverImageUrl: undefined,
+        variantCoverImageUrls: undefined,
+        isbns: ['9784000000002'],
+        volumeNumberWarning: undefined,
+      },
     ]);
   });
 
@@ -245,5 +277,74 @@ describe('MangaVolumeLookupService', () => {
     const candidates = result as ExternalUnitCandidate[];
 
     expect(candidates.map((c) => c.number)).toEqual([1, 1.5]);
+  });
+
+  it('同一ISBNの重複候補（ページング重複等）は1件に統合し、表紙URLを二重集計しない', () => {
+    googleBooks.searchVolumes.mockReturnValue(
+      of([
+        {
+          isbn13: '9784000000001',
+          volumeNumber: 1,
+          title: '鬼滅の刃 1',
+          coverImageUrl: 'https://example.com/gb-1.jpg',
+        },
+        {
+          isbn13: '9784000000001',
+          volumeNumber: 1,
+          title: '鬼滅の刃 1',
+          coverImageUrl: 'https://example.com/gb-1.jpg',
+        },
+      ]),
+    );
+    openBd.getByIsbns.mockReturnValue(of(new Map()));
+
+    let result: unknown;
+    service.getVolumes('鬼滅の刃').subscribe((r) => (result = r as ExternalUnitCandidate[]));
+    const candidates = result as ExternalUnitCandidate[];
+
+    expect(candidates).toEqual([
+      {
+        number: 1,
+        coverImageUrl: 'https://example.com/gb-1.jpg',
+        variantCoverImageUrls: ['https://example.com/gb-1.jpg'],
+        isbns: ['9784000000001'],
+        volumeNumberWarning: undefined,
+      },
+    ]);
+  });
+
+  it('同一巻番号に異なるISBNが3件以上集まった場合はvolumeNumberWarningを付与する', () => {
+    googleBooks.searchVolumes.mockReturnValue(
+      of([
+        { isbn13: '9784000000001', volumeNumber: 1, title: '作品 1' },
+        { isbn13: '9784000000002', volumeNumber: 1, title: '作品 1(愛蔵版)' },
+        { isbn13: '9784000000003', volumeNumber: 1, title: '作品 1(新装版)' },
+      ]),
+    );
+    openBd.getByIsbns.mockReturnValue(of(new Map()));
+
+    let result: unknown;
+    service.getVolumes('作品').subscribe((r) => (result = r as ExternalUnitCandidate[]));
+    const candidates = result as ExternalUnitCandidate[];
+
+    expect(candidates[0].volumeNumberWarning).toBe(
+      '表紙候補が複数見つかりました。誤った巻の可能性があります',
+    );
+  });
+
+  it('同一巻番号の異なるISBNが2件以下の場合はvolumeNumberWarningを付与しない（通常の版違い統合）', () => {
+    googleBooks.searchVolumes.mockReturnValue(
+      of([
+        { isbn13: '9784000000001', volumeNumber: 1, title: '作品 1' },
+        { isbn13: '9784000000002', volumeNumber: 1, title: '作品 1(愛蔵版)' },
+      ]),
+    );
+    openBd.getByIsbns.mockReturnValue(of(new Map()));
+
+    let result: unknown;
+    service.getVolumes('作品').subscribe((r) => (result = r as ExternalUnitCandidate[]));
+    const candidates = result as ExternalUnitCandidate[];
+
+    expect(candidates[0].volumeNumberWarning).toBeUndefined();
   });
 });

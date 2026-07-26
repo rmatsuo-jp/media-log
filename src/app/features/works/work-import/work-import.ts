@@ -9,6 +9,9 @@
  * 手動タイトル追加フォームを同じ詳細設定に統合表示する。
  * mediaType inputは呼び出し元（work-list）のトグル値を受け取り、effectでsearch.mediaTypeへ同期する
  * （自前のトグルUIは持たない）。
+ * selectWork()時にWorksStateService.findPossibleDuplicates()で既存Workとの重複候補を検知し、
+ * duplicateMatchesにセットする。候補読み込み自体はブロックせず、重複時はUI上で警告バナーを表示するのみで
+ * confirmImport()にはガードを入れない（ユーザーが警告を見た上で続行するか判断する）。
  */
 import {
   ChangeDetectionStrategy,
@@ -27,6 +30,7 @@ import { Spinner } from '@shared/ui/spinner/spinner';
 import { Badge } from '@shared/ui/badge/badge';
 import { WorkImportSearchService } from './work-import-search.service';
 import { WorkImportMapperService } from './work-import-mapper.service';
+import { DuplicateWorkMatch, WorksStateService } from '../works-state.service';
 
 type Step = 'search' | 'candidates';
 
@@ -40,6 +44,7 @@ type Step = 'search' | 'candidates';
 })
 export class WorkImport {
   private mapper = inject(WorkImportMapperService);
+  private worksState = inject(WorksStateService);
   protected search = inject(WorkImportSearchService);
   protected readonly meta = MEDIA_TYPE_META;
 
@@ -55,12 +60,14 @@ export class WorkImport {
   protected selectedWork = signal<ExternalWorkSearchResult | null>(null);
   protected selectedNumbers = signal<Set<number>>(new Set());
   protected groupTitle = signal('');
+  protected duplicateMatches = signal<DuplicateWorkMatch[]>([]);
 
   selectWork(result: ExternalWorkSearchResult): void {
     this.selectedWork.set(result);
     this.step.set('candidates');
     this.groupTitle.set(MEDIA_TYPE_META[result.mediaType].importGroupTitle);
     this.selectedNumbers.set(new Set());
+    this.duplicateMatches.set(this.worksState.findPossibleDuplicates(result));
 
     this.search.loadCandidatesFor(result, (candidates) => {
       const filter = this.search.numberFilter();
@@ -81,6 +88,7 @@ export class WorkImport {
   backToSearch(): void {
     this.step.set('search');
     this.selectedWork.set(null);
+    this.duplicateMatches.set([]);
   }
 
   isSelected(number: number): boolean {
@@ -111,6 +119,7 @@ export class WorkImport {
 
     this.step.set('search');
     this.selectedWork.set(null);
+    this.duplicateMatches.set([]);
     this.search.resetAfterImport();
   }
 }

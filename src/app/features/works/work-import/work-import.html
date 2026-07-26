@@ -6,7 +6,8 @@
      詳細設定（<details>）でincludeAdultを切り替え可能。デフォルトは成人向け除外。
      検索結果は10件ずつページングし、前へ/次へボタンで切り替える。
      タイトル入力は2文字以上でデバウンス自動検索される（「検索」ボタン/Enterは即時検索）。
-     マンガ/アニメ/すべての絞り込みは呼び出し元（work-list）のトグルから受け取り、自前では表示しない。 -->
+     マンガ/アニメ/すべての絞り込みは呼び出し元（work-list）のトグルから受け取り、自前では表示しない。
+     candidate.volumeNumberWarningがある巻タイルには警告バッジ（⚠、title属性で理由を表示）を重ねる。 -->
 <div class="work-import">
   @if (step() === 'search') {
     <div class="add-row">
@@ -139,6 +140,13 @@
     <button class="link-button" type="button" (click)="backToSearch()">← 検索に戻る</button>
     <h3>{{ search.displayTitle(work) }}</h3>
 
+    @if (duplicateMatches().length > 0) {
+      <p class="hint error-text">
+        既にこの作品は登録されています（{{ duplicateMatches()[0].work.title }}）。
+        新規に取り込むと別作品として重複登録されます。
+      </p>
+    }
+
     <div class="form-group">
       <label class="label">グループ名</label>
       <input
@@ -212,6 +220,16 @@
               >
                 他の表紙
               </button>
+            }
+            @if (candidate.volumeNumberWarning; as warning) {
+              <app-badge
+                class="work-import-badge"
+                variant="warning"
+                [solid]="true"
+                [title]="warning"
+              >
+                ⚠
+              </app-badge>
             }
           </div>
         }

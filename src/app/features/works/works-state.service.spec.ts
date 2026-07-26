@@ -122,6 +122,91 @@ describe('WorksStateService', () => {
     expect(state.workById('missing')).toBeUndefined();
   });
 
+  describe('findPossibleDuplicates()', () => {
+    function externalResult(
+      partial: Partial<import('@core/external-media/external-media.model').ExternalWorkSearchResult>,
+    ) {
+      return {
+        mediaType: 'manga' as const,
+        externalSource: 'anilist' as const,
+        externalId: 'a1',
+        title: 'NARUTO',
+        ...partial,
+      };
+    }
+
+    it('externalId+externalSourceが一致するWorkがあればmatchType=externalIdで返す', () => {
+      const w = work({
+        id: 'w1',
+        mediaType: 'manga',
+        title: '別タイトル',
+        externalSource: 'anilist',
+        externalId: 'a1',
+      });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(externalResult({ externalId: 'a1' }));
+
+      expect(result).toEqual([{ work: w, matchType: 'externalId' }]);
+    });
+
+    it('externalId不一致でもタイトル正規化後完全一致するWorkがあればmatchType=titleで返す', () => {
+      const w = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO' });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ externalId: 'other', title: 'NARUTO' }),
+      );
+
+      expect(result).toEqual([{ work: w, matchType: 'title' }]);
+    });
+
+    it('記号・全角半角の違いは正規化後一致すれば検知される', () => {
+      const w = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO－ナルト－' });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ externalId: 'other', title: 'NARUTO ナルト' }),
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].matchType).toBe('title');
+    });
+
+    it('mediaTypeが異なる場合は除外される', () => {
+      const w = work({ id: 'w1', mediaType: 'anime', title: 'NARUTO' });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ mediaType: 'manga', externalId: 'other', title: 'NARUTO' }),
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('deleted:trueのWorkは候補から除外される', () => {
+      const w = work({ id: 'w1', mediaType: 'manga', title: 'NARUTO', deleted: true });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ externalId: 'other', title: 'NARUTO' }),
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('一致するWorkが無ければ空配列を返す', () => {
+      const w = work({ id: 'w1', mediaType: 'manga', title: '無関係' });
+      const state = setup([w], []);
+
+      const result = state.findPossibleDuplicates(
+        externalResult({ externalId: 'other', title: 'NARUTO' }),
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('書き込み系メソッド', () => {
     function setupWithRepoSpy() {
       const repoStub = {

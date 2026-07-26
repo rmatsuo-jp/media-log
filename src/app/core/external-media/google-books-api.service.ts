@@ -32,6 +32,7 @@ import { Observable, forkJoin, map, of, retry, switchMap } from 'rxjs';
 import { SettingsStoreService } from '@core/settings/settings-store.service';
 import { environment } from '../../../environments/environment';
 import { isbn10ToIsbn13, normalizeIsbn } from './isbn.util';
+import { normalizeTitle } from './title-normalize.util';
 
 const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
 const PAGE_SIZE = 40;
@@ -90,10 +91,6 @@ interface GoogleBooksSearchResponse {
   items?: GoogleBooksItem[];
 }
 
-function normalize(title: string): string {
-  return title.replace(/[\s　!-/:-@[-`{-~！-／：-＠［-｀｛-～]/g, '').toLowerCase();
-}
-
 export function toHalfWidthDigits(text: string): string {
   return text.replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0));
 }
@@ -138,7 +135,7 @@ export class GoogleBooksApiService {
   private settingsStore = inject(SettingsStoreService);
 
   searchVolumes(seriesTitle: string): Observable<GoogleBooksVolumeMatch[]> {
-    const normalizedSeries = normalize(seriesTitle);
+    const normalizedSeries = normalizeTitle(seriesTitle);
     return this.fetchPage(seriesTitle, 0).pipe(
       switchMap(({ totalItems, items }) => {
         const remainingStarts: number[] = [];
@@ -181,7 +178,7 @@ export class GoogleBooksApiService {
     const matches: GoogleBooksVolumeMatch[] = [];
     for (const item of items) {
       const info = item.volumeInfo;
-      if (!normalize(info.title).includes(normalizedSeries)) continue;
+      if (!normalizeTitle(info.title).includes(normalizedSeries)) continue;
       const volumeNumber = parseVolumeNumber(info, seriesTitle);
       if (volumeNumber == null) continue;
       const rawIsbn13 = info.industryIdentifiers?.find((i) => i.type === 'ISBN_13')?.identifier;
